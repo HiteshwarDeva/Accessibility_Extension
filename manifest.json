@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Accessibility Extension",
+  "version": "1.0",
+  "description": "DevTools panel that runs accessibility test in the inspected page and shows results.",
+  "permissions": ["storage"],
+  "devtools_page": "devtools/devtools.html",
+  "web_accessible_resources": [
+    {
+      "resources": ["vendor/axe.min.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
