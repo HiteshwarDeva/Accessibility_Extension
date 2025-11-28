@@ -1,16 +1,38 @@
-# React + Vite
+## Accessibility Extension – Setup Instructions
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+### Prerequisites
+- **Node.js**: v18 or later
+- **Package manager**: `npm` (bundled with Node.js)
 
-Currently, two official plugins are available:
+### 1. Install dependencies
+From the project root:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```bash
+npm install
+```
 
-## React Compiler
+### 2. Build for production
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm run build
+```
 
-## Expanding the ESLint configuration
+The optimized production build will be output to the `dist` directory.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 3. Load the extension in Chrome
+
+1. Open Chrome and navigate to `chrome://extensions/`.
+2. Enable **Developer mode** (top-right toggle).
+3. Click **Load unpacked** and select the `dist` folder.
+4. Ensure the extension is enabled.
+
+### 4. Use the Accessibility panel
+
+1. Open any website in Chrome.
+2. Open **Developer Tools** (e.g. `F12` or `Ctrl+Shift+I` / `Cmd+Option+I`).
+3. Navigate to the **Accessibility Minimal** tab.
+4. Run the checks to see:
+   - Total **passed** accessibility tests  
+   - Total **violations**  
+   - Detailed lists of violations, grouped in dropdowns with the specific elements that failed
+
