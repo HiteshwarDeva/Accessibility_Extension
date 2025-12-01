@@ -1,8 +1,7 @@
 import React from 'react';
 import Layout from './components/Layout/Layout';
 import Dashboard from './components/Dashboard/Dashboard';
-import ContrastChecker from './components/Contrast/ContrastChecker';
-import ContrastSummary from './components/Contrast/ContrastSummary';
+import ContrastSection from './components/Contrast/ContrastSection';
 
 function App() {
   return (
@@ -12,16 +11,20 @@ function App() {
   );
 }
 
+const Placeholder = ({ message }) => (
+  <div style={{ padding: 20, textAlign: 'center' }}>{message}</div>
+);
+
 const Content = ({ activeTab }) => {
   switch (activeTab) {
     case 'details':
       return <Dashboard />;
     case 'contrast':
-      return <ContrastChecker />;
+      return <ContrastSection />;
     case 'order':
-      return <div style={{ padding: 20, textAlign: 'center' }}>Order View (Coming Soon)</div>;
+      return <Placeholder message="Order View (Coming Soon)" />;
     case 'structure':
-      return <ContrastSummary />;
+      return <Placeholder message="Structure View (Coming Soon)" />;
     default:
       return <Dashboard />;
   }
