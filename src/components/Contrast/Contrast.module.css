@@ -111,3 +111,24 @@
     font-size: var(--font-size-sm);
     text-align: center;
 }
+
+.contrastLayout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.subSection {
+    width: 100%;
+}
+
+@media (min-width: 1024px) {
+    .contrastLayout {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .subSection {
+        flex: 1;
+    }
+}
