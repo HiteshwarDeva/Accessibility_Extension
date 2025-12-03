@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import styles from './Contrast.module.css';
+import styles from '../Contrast.module.css';
 
 const ContrastChecker = () => {
     const [fgColor, setFgColor] = useState('#000000');

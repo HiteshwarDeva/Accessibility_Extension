@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo } from 'react';
 import styles from './Dashboard.module.css';
-import { useAxeRunner } from '../../hooks/useAxeRunner';
 import DetailsSection from './DetailsSection';
 
 const buildSummary = (results) => {
+    console.log(results);
     const passed = results?.passes?.length || 0;
     const violations = results?.violations?.length || 0;
     return {
@@ -46,8 +46,7 @@ const formatCategories = (entries, type) =>
         };
     });
 
-const Dashboard = () => {
-    const { results, isScanning, error, runScan, highlightNode } = useAxeRunner();
+const Dashboard = ({ results, isScanning, error, runScan, highlightNode }) => {
     const hasResults = Boolean(results);
 
     useEffect(() => {

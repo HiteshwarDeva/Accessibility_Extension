@@ -1,7 +1,34 @@
 import React from 'react';
-import styles from './Contrast.module.css';
+import styles from '../Contrast.module.css';
 
-const ContrastSummary = () => {
+const ContrastSummary = ({ violations = [], passes = [] }) => {
+    console.log(violations, passes);
+    const calculateStats = (tag) => {
+        // Filter by specific contrast rule ID and the requested tag (AA/AAA)
+        // We sum the number of nodes (elements) rather than just counting the rule itself
+        const getCount = (list) => list
+            .filter(item => item.id === 'color-contrast' && item.tags.includes(tag))
+            .reduce((acc, item) => acc + (item.nodes ? item.nodes.length : 0), 0);
+
+        const passedCount = getCount(passes);
+        const failedCount = getCount(violations);
+
+        const total = passedCount + failedCount;
+        const percentage = total === 0 ? 0 : Math.round((passedCount / total) * 100);
+
+        return { passed: passedCount, failed: failedCount, total, percentage };
+    };
+
+    const aaStats = calculateStats('wcag2aa');
+    const aaaStats = calculateStats('wcag2aaa');
+
+    const renderPieChart = (stats) => {
+        const degree = (stats.percentage / 100) * 360;
+        return {
+            background: `conic-gradient(#4CAF50 0deg ${degree}deg, #F44336 ${degree}deg 360deg)`
+        };
+    };
+
     return (
         <div className={styles.contrastContainer}>
             <div className={styles.checkerSection}>
@@ -13,28 +40,28 @@ const ContrastSummary = () => {
                         <h4>AA Standard</h4>
                         <div style={{
                             width: 100, height: 100, borderRadius: '50%',
-                            background: 'conic-gradient(#4CAF50 0% 63%, #F44336 63% 100%)',
+                            ...renderPieChart(aaStats),
                             margin: '10px auto'
                         }}></div>
-                        <div>5 / 8 passed</div>
-                        <div style={{ fontSize: 12, color: '#666' }}>63% compliant</div>
+                        <div>{aaStats.passed} / {aaStats.total} passed</div>
+                        <div style={{ fontSize: 12, color: '#666' }}>{aaStats.percentage}% compliant</div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
                         <h4>AAA Standard</h4>
                         <div style={{
                             width: 100, height: 100, borderRadius: '50%',
-                            background: 'conic-gradient(#4CAF50 0% 38%, #F44336 38% 100%)',
+                            ...renderPieChart(aaaStats),
                             margin: '10px auto'
                         }}></div>
-                        <div>3 / 8 passed</div>
-                        <div style={{ fontSize: 12, color: '#666' }}>38% compliant</div>
+                        <div>{aaaStats.passed} / {aaaStats.total} passed</div>
+                        <div style={{ fontSize: 12, color: '#666' }}>{aaaStats.percentage}% compliant</div>
                     </div>
                 </div>
 
                 <h4>Tested Color Pairs</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <ColorPairRow fg="#000000" bg="#ffffff" ratio="21:1" aa={true} aaa={true} />
-                    <ColorPairRow fg="#666666" bg="#ffffff" ratio="5.7:1" aa={true} aaa={false} />
+                    {/* Placeholder for individual color pair rows if needed, or remove if not applicable to general stats */}
+                    <p style={{ color: '#666', fontStyle: 'italic' }}>Detailed color pair analysis is available in the Dashboard.</p>
                 </div>
             </div>
         </div>
