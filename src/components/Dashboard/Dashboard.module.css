@@ -337,6 +337,41 @@
     color: #475467;
 }
 
+.help-card {
+    background: #b7f4a8;
+    border: 1px solid #bbf7d0;
+    border-radius: 14px;
+    padding: 16px;
+    color: #1f2937;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.help-section + .help-section {
+    border-top: 1px solid #d9f99d;
+    padding-top: 12px;
+}
+
+.help-title {
+    margin: 0;
+    font-weight: 600;
+    color: #166534;
+}
+
+.help-list {
+    margin: 0;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    list-style: disc;
+}
+
+.help-list li {
+    line-height: 1.4;
+}
+
 .item-meta {
     display: flex;
     flex-wrap: wrap;
