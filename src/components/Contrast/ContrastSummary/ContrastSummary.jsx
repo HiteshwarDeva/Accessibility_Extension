@@ -3,30 +3,6 @@ import styles from '../Contrast.module.css';
 
 const ContrastSummary = ({ violations = [], passes = [] }) => {
 
-    const calculateStats = (tag) => {
-        const getCount = (list) => list
-            .filter(item => item.id === 'color-contrast' && item.tags.includes(tag))
-            .reduce((acc, item) => acc + (item.nodes ? item.nodes.length : 0), 0);
-
-        const passedCount = getCount(passes);
-        const failedCount = getCount(violations);
-
-        const total = passedCount + failedCount;
-        const percentage = total === 0 ? 0 : Math.round((passedCount / total) * 100);
-
-        return { passed: passedCount, failed: failedCount, total, percentage };
-    };
-
-    const aaStats = calculateStats('wcag2aa');
-    const aaaStats = calculateStats('wcag2aaa');
-
-    const renderPieChart = (stats) => {
-        const degree = (stats.percentage / 100) * 360;
-        return {
-            background: `conic-gradient(#4CAF50 0deg ${degree}deg, #F44336 ${degree}deg 360deg)`
-        };
-    };
-
     // Helper to extract color data from nodes
     const extractColorData = (list, isViolation) => {
         const contrastRule = list.find(item => item.id === 'color-contrast');
@@ -82,6 +58,24 @@ const ContrastSummary = ({ violations = [], passes = [] }) => {
             };
             return getScore(a) - getScore(b);
         });
+
+    const calculateStatsFromPairs = (pairs, type) => {
+        const total = pairs.length;
+        const passedCount = pairs.filter(p => p[type]).length;
+        const failedCount = total - passedCount;
+        const percentage = total === 0 ? 0 : Math.round((passedCount / total) * 100);
+        return { passed: passedCount, failed: failedCount, total, percentage };
+    };
+
+    const aaStats = calculateStatsFromPairs(allPairs, 'aa');
+    const aaaStats = calculateStatsFromPairs(allPairs, 'aaa');
+
+    const renderPieChart = (stats) => {
+        const degree = (stats.percentage / 100) * 360;
+        return {
+            background: `conic-gradient(#4CAF50 0deg ${degree}deg, #F44336 ${degree}deg 360deg)`
+        };
+    };
 
     return (
         <div className={styles.contrastContainer}>
