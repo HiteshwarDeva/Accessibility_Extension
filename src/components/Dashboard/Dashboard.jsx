@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import styles from './Dashboard.module.css';
 import { useAxeRunner } from '../../hooks/useAxeRunner';
 import DetailsSection from './DetailsSection';
+import Toast from './Toast';
 
 const buildSummary = (results) => {
     const passed = results?.passes?.length || 0;
@@ -47,8 +48,10 @@ const formatCategories = (entries, type) =>
     });
 
 const Dashboard = () => {
-    const { results, isScanning, error, runScan, highlightNode } = useAxeRunner();
+    const { results, isScanning, error, runScan, toggleHighlight, clearHighlights } = useAxeRunner();
     const hasResults = Boolean(results);
+    const [toastMessage, setToastMessage] = useState(null);
+    const [highlightedItemId, setHighlightedItemId] = useState(null);
 
     useEffect(() => {
         if (!results && !isScanning) {
@@ -56,13 +59,49 @@ const Dashboard = () => {
         }
     }, [results, isScanning, runScan]);
 
+    // Clear highlights when results change
+    useEffect(() => {
+        if (results) {
+            clearHighlights();
+            setHighlightedItemId(null);
+        }
+    }, [results, clearHighlights]);
+
     const summary = useMemo(() => buildSummary(results || {}), [results]);
     const violationCategories = useMemo(() => formatCategories(results?.violations || [], 'violations'), [results]);
     const successCategories = useMemo(() => formatCategories(results?.passes || [], 'passes'), [results]);
 
     const handleHighlight = (item) => {
-        if (!item?.selectors?.length) return;
-        highlightNode(item.selectors);
+        if (!item) return;
+
+        // Create unique ID for this item
+        const itemId = `${item.element_location || ''}-${item.description || ''}`;
+        const isCurrentlyHighlighted = highlightedItemId === itemId;
+
+        if (isCurrentlyHighlighted) {
+            // Turn off highlight
+            clearHighlights();
+            setHighlightedItemId(null);
+        } else {
+            // Turn on highlight
+            const selectorData = {
+                selectors: item.selectors || [],
+                element_location: item.element_location
+            };
+
+            toggleHighlight(selectorData, (response) => {
+                if (response && response.ok) {
+                    if (response.isHighlighted) {
+                        setHighlightedItemId(itemId);
+                    } else {
+                        setHighlightedItemId(null);
+                    }
+                } else {
+                    setToastMessage(response && response.error ? response.error : 'Component not found on this page.');
+                    setHighlightedItemId(null);
+                }
+            });
+        }
     };
 
     const handleDownloadReport = () => {
@@ -113,10 +152,18 @@ const Dashboard = () => {
                     onHighlight={handleHighlight}
                     onReRun={runScan}
                     onDownloadReport={handleDownloadReport}
+                    highlightedItemId={highlightedItemId}
                 />
             )}
 
             {error && <p className={styles.errorMessage}>{error}</p>}
+            
+            {toastMessage && (
+                <Toast 
+                    message={toastMessage} 
+                    onClose={() => setToastMessage(null)} 
+                />
+            )}
         </div>
     );
 };

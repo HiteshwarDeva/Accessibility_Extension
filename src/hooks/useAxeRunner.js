@@ -32,13 +32,23 @@ export const useAxeRunner = () => {
         sendMessageToInspectedTab({ type: 'clear-highlights' }, () => { });
     }, []);
 
+    const toggleHighlight = useCallback((selectorData, callback) => {
+        sendMessageToInspectedTab(
+            { type: 'toggle-highlight', selectorData },
+            (response) => {
+                if (callback) callback(response);
+            }
+        );
+    }, []);
+
     return {
         results,
         isScanning,
         error,
         runScan,
         highlightNode,
-        clearHighlights
+        clearHighlights,
+        toggleHighlight
     };
 };
 

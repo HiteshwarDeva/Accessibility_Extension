@@ -46,8 +46,9 @@ const SummaryCard = ({ summary, onReRun, onDownloadReport }) => {
                     <button className={`${styles.btn} ${styles['btn-secondary']}`} onClick={onReRun}>
                         Re-run Tests
                     </button>
-                    <button className={`${styles.btn} ${styles['icon-btn']}`} onClick={onDownloadReport} aria-label="Download report">
-                        ⬇️
+                    <button className={`${styles.btn} ${styles['icon-btn']}`} onClick={onDownloadReport} aria-label="Download accessibility report">
+                        <span className={styles['download-icon']} aria-hidden="true">⬇</span>
+                        <span>Download JSON</span>
                     </button>
                 </div>
             </div>

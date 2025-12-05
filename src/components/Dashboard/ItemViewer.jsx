@@ -59,10 +59,13 @@ const HelpCallout = ({ help }) => {
     );
 };
 
-const ItemViewer = ({ item, index, total, onPrev, onNext, onHighlight }) => {
+const ItemViewer = ({ item, index, total, onPrev, onNext, onHighlight, highlightedItemId }) => {
     if (!item) {
         return <p className={styles['empty-copy']}>No details available for this rule.</p>;
     }
+
+    const itemId = `${item.element_location || ''}-${item.description || ''}`;
+    const isHighlighted = highlightedItemId === itemId;
 
     return (
         <div className={styles['item-card']}>
@@ -71,8 +74,13 @@ const ItemViewer = ({ item, index, total, onPrev, onNext, onHighlight }) => {
                     {index + 1} of {total}
                 </span>
                 <div className={styles['item-actions']}>
-                    <button className={styles['highlight-btn']} type="button" onClick={onHighlight}>
-                        Highlight
+                    <button 
+                        className={`${styles['highlight-btn']} ${isHighlighted ? styles.active : ''}`} 
+                        type="button" 
+                        onClick={onHighlight}
+                        aria-pressed={isHighlighted}
+                    >
+                        {isHighlighted ? 'Remove Highlight' : 'Highlight'}
                     </button>
                     <div className={styles['item-nav']}>
                         <button className={styles['nav-btn']} onClick={onPrev} disabled={total <= 1} aria-label="Previous item">

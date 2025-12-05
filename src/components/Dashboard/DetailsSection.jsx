@@ -3,7 +3,7 @@ import styles from './Dashboard.module.css';
 import SummaryCard from './SummaryCard';
 import CategoryPanel from './CategoryPanel';
 
-const DetailsSection = ({ summary, violations, passed, onHighlight, onReRun, onDownloadReport }) => {
+const DetailsSection = ({ summary, violations, passed, onHighlight, onReRun, onDownloadReport, highlightedItemId }) => {
     const [openViolationIndex, setOpenViolationIndex] = useState(violations.length ? 0 : -1);
     const [openPassedIndex, setOpenPassedIndex] = useState(passed.length ? 0 : -1);
     const [violationItemIndexes, setViolationItemIndexes] = useState(Array(violations.length).fill(0));
@@ -48,6 +48,7 @@ const DetailsSection = ({ summary, violations, passed, onHighlight, onReRun, onD
                         onPrev={() => updateIndex(setViolationItemIndexes, index, -1, violations)}
                         onNext={() => updateIndex(setViolationItemIndexes, index, 1, violations)}
                         onHighlight={(item) => onHighlight(item)}
+                        highlightedItemId={highlightedItemId}
                     />
                 ))}
             </section>
@@ -67,6 +68,7 @@ const DetailsSection = ({ summary, violations, passed, onHighlight, onReRun, onD
                         onPrev={() => updateIndex(setPassedItemIndexes, index, -1, passed)}
                         onNext={() => updateIndex(setPassedItemIndexes, index, 1, passed)}
                         onHighlight={(entry) => onHighlight(entry)}
+                        highlightedItemId={highlightedItemId}
                     />
                 ))}
             </section>

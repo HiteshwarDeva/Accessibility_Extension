@@ -11,7 +11,8 @@ const CategoryPanel = ({
     activeIndex,
     onPrev,
     onNext,
-    onHighlight
+    onHighlight,
+    highlightedItemId
 }) => (
     <div className={styles['category-panel']}>
         <button className={styles['category-header']} aria-expanded={isOpen} onClick={onToggle} type="button">
@@ -33,6 +34,7 @@ const CategoryPanel = ({
                         onPrev={onPrev}
                         onNext={onNext}
                         onHighlight={() => onHighlight(items[activeIndex])}
+                        highlightedItemId={highlightedItemId}
                     />
                 ) : (
                     <p className={styles['empty-copy']}>No entries to display.</p>
