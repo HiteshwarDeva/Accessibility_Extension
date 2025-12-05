@@ -4,6 +4,7 @@ import ContrastChecker from '../ContrastChecker/ContrastChecker';
 
 const ContrastSummary = ({ violations = [], passes = [] }) => {
     const [expandedIndex, setExpandedIndex] = useState(null);
+    const [filter, setFilter] = useState('all'); // 'all', 'aa', 'aaa'
 
     // Helper to extract color data from nodes
     const extractColorData = (list, isViolation) => {
@@ -52,14 +53,24 @@ const ContrastSummary = ({ violations = [], passes = [] }) => {
     // Combine, filter, and sort
     const allPairs = [...violationPairs, ...passPairs]
         .filter(pair => pair.fg && pair.bg && !isNaN(pair.ratio)) // Filter invalid data
+        .filter(pair => {
+            if (filter === 'aa') return !pair.aa;
+            if (filter === 'aaa') return !pair.aaa;
+            return true;
+        })
         .sort((a, b) => {
-            // Scoring: 0 = Both Failed, 1 = One Failed (AA Passed), 2 = Both Passed
-            const getScore = (p) => {
-                if (p.aa && p.aaa) return 2;
-                if (p.aa) return 1;
-                return 0;
-            };
-            return getScore(a) - getScore(b);
+            if (filter === 'aa' || filter === 'aaa') {
+                // For failures, sort by contrast ratio ascending (worst first)
+                return a.ratio - b.ratio;
+            } else {
+                // Default 'all': Sort by score (both passed -> one passed -> both failed)
+                const getScore = (p) => {
+                    if (p.aa && p.aaa) return 2;
+                    if (p.aa) return 1;
+                    return 0;
+                };
+                return getScore(a) - getScore(b);
+            }
         });
 
     const calculateStatsFromPairs = (pairs, type) => {
@@ -113,10 +124,53 @@ const ContrastSummary = ({ violations = [], passes = [] }) => {
                     </div>
                 </div>
 
-                <h4>Tested Color Pairs</h4>
-                <p style={{ color: '#666', fontSize: '0.9em', marginBottom: '10px' }}>
-                    All detected foreground and background combinations
-                </p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <div>
+                        <h4>Tested Color Pairs</h4>
+                        <p style={{ color: '#666', fontSize: '0.9em', margin: 0 }}>
+                            All detected foreground and background combinations
+                        </p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '5px' }}>
+                        <button
+                            onClick={() => setFilter('all')}
+                            style={{
+                                padding: '5px 10px',
+                                border: '1px solid #ccc',
+                                borderRadius: '4px',
+                                background: filter === 'all' ? '#e0e0e0' : 'white',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            All
+                        </button>
+                        <button
+                            onClick={() => setFilter('aa')}
+                            style={{
+                                padding: '5px 10px',
+                                border: '1px solid #ccc',
+                                borderRadius: '4px',
+                                background: filter === 'aa' ? '#e0e0e0' : 'white',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            AA
+                        </button>
+                        <button
+                            onClick={() => setFilter('aaa')}
+                            style={{
+                                padding: '5px 10px',
+                                border: '1px solid #ccc',
+                                borderRadius: '4px',
+                                background: filter === 'aaa' ? '#e0e0e0' : 'white',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            AAA
+                        </button>
+                    </div>
+                </div>
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {allPairs.length > 0 ? (
                         allPairs.map((pair, index) => (
