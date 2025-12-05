@@ -1,16 +1,32 @@
 import React, { useState } from 'react';
 import styles from '../Contrast.module.css';
 
-const ContrastChecker = () => {
+const ContrastChecker = ({ initialColors, embedded = false }) => {
     const [fgColor, setFgColor] = useState('#000000');
     const [bgColor, setBgColor] = useState('#FFFFFF');
     const [ratio, setRatio] = useState(21);
+    const [textSize, setTextSize] = useState('all'); // 'all', 'normal', 'large'
     const [compliance, setCompliance] = useState({
         aaNormal: true,
         aaaNormal: true,
         aaLarge: true,
         aaaLarge: true
     });
+
+    React.useEffect(() => {
+        if (initialColors) {
+            setFgColor(initialColors.fg);
+            setBgColor(initialColors.bg);
+            // If isLarge is present, set specific text size, otherwise default to all
+            if (initialColors.isLarge !== undefined) {
+                setTextSize(initialColors.isLarge ? 'large' : 'normal');
+            } else {
+                setTextSize('all');
+            }
+        } else {
+            if (!embedded) setTextSize('all');
+        }
+    }, [initialColors, embedded]);
 
     // Helper functions
     const hexToRgb = (hex) => {
@@ -67,10 +83,14 @@ const ContrastChecker = () => {
     };
 
     return (
-        <div className={styles.contrastContainer}>
-            <div className={styles.checkerSection}>
-                <h3>Contrast Checker</h3>
-                <p className={styles.description}>Test custom color combinations for accessibility</p>
+        <div className={embedded ? '' : styles.contrastContainer} style={embedded ? { padding: '10px 0' } : {}}>
+            <div className={styles.checkerSection} style={embedded ? { boxShadow: 'none', padding: 0 } : {}}>
+                {!embedded && (
+                    <>
+                        <h3>Contrast Checker</h3>
+                        <p className={styles.description}>Test custom color combinations for accessibility</p>
+                    </>
+                )}
 
                 <div className={styles.inputGroup}>
                     <label>Foreground Color</label>
@@ -99,29 +119,35 @@ const ContrastChecker = () => {
                 </div>
 
                 <div className={styles.complianceSection}>
-                    <h4>WCAG Compliance ( Text )</h4>
-                    <div className={styles.complianceRow}>
-                        <span>For normal text:</span>
-                        <div className={styles.badges}>
-                            <span className={`${styles.badge} ${compliance.aaNormal ? styles.pass : styles.fail}`} style={{ background: compliance.aaNormal ? '#4CAF50' : '#F44336' }}>
-                                {compliance.aaNormal ? 'AA Pass' : 'AA Fail'}
-                            </span>
-                            <span className={`${styles.badge} ${compliance.aaaNormal ? styles.pass : styles.fail}`} style={{ background: compliance.aaaNormal ? '#4CAF50' : '#F44336' }}>
-                                {compliance.aaaNormal ? 'AAA Pass' : 'AAA Fail'}
-                            </span>
+                    <h4>WCAG Compliance</h4>
+                    <p><strong>Level AA (WCAG - 1.4.3)</strong> : Required Color Contrast Ratio for nomral text - 4.5, for large text - 3 </p>
+                    <p><strong>Level AAA (WCAG - 1.4.6)</strong> : Required Color Contrast Ratio for nomral text - 7, for large text - 4.5 </p>
+                    {(textSize === 'all' || textSize === 'normal') && (
+                        <div className={styles.complianceRow}>
+                            <span><strong>Text Sixe : </strong> Normal </span>
+                            <div className={styles.badges}>
+                                <span className={`${styles.badge} ${compliance.aaNormal ? styles.pass : styles.fail}`} style={{ background: compliance.aaNormal ? '#4CAF50' : '#F44336' }}>
+                                    {compliance.aaNormal ? 'AA Pass' : 'AA Fail'}
+                                </span>
+                                <span className={`${styles.badge} ${compliance.aaaNormal ? styles.pass : styles.fail}`} style={{ background: compliance.aaaNormal ? '#4CAF50' : '#F44336' }}>
+                                    {compliance.aaaNormal ? 'AAA Pass' : 'AAA Fail'}
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                    <div className={styles.complianceRow}>
-                        <span>For large text:</span>
-                        <div className={styles.badges}>
-                            <span className={`${styles.badge} ${compliance.aaLarge ? styles.pass : styles.fail}`} style={{ background: compliance.aaLarge ? '#4CAF50' : '#F44336' }}>
-                                {compliance.aaLarge ? 'AA Pass' : 'AA Fail'}
-                            </span>
-                            <span className={`${styles.badge} ${compliance.aaaLarge ? styles.pass : styles.fail}`} style={{ background: compliance.aaaLarge ? '#4CAF50' : '#F44336' }}>
-                                {compliance.aaaLarge ? 'AAA Pass' : 'AAA Fail'}
-                            </span>
+                    )}
+                    {(textSize === 'all' || textSize === 'large') && (
+                        <div className={styles.complianceRow}>
+                            <span><strong>Text Sixe : </strong> Large </span>
+                            <div className={styles.badges}>
+                                <span className={`${styles.badge} ${compliance.aaLarge ? styles.pass : styles.fail}`} style={{ background: compliance.aaLarge ? '#4CAF50' : '#F44336' }}>
+                                    {compliance.aaLarge ? 'AA Pass' : 'AA Fail'}
+                                </span>
+                                <span className={`${styles.badge} ${compliance.aaaLarge ? styles.pass : styles.fail}`} style={{ background: compliance.aaaLarge ? '#4CAF50' : '#F44336' }}>
+                                    {compliance.aaaLarge ? 'AAA Pass' : 'AAA Fail'}
+                                </span>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 <div className={styles.recommendation}>

@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styles from '../Contrast.module.css';
+import ContrastChecker from '../ContrastChecker/ContrastChecker';
 
 const ContrastSummary = ({ violations = [], passes = [] }) => {
+    const [expandedIndex, setExpandedIndex] = useState(null);
 
     // Helper to extract color data from nodes
     const extractColorData = (list, isViolation) => {
@@ -38,6 +40,7 @@ const ContrastSummary = ({ violations = [], passes = [] }) => {
                 ratio: ratio,
                 aa: aaPassed,
                 aaa: aaaPassed,
+                isLarge,
                 isViolation // Mark as violation if it came from the violations list (though individual checks might vary, usually if it's in violations, it failed something)
             };
         }).filter(item => item !== null);
@@ -77,6 +80,10 @@ const ContrastSummary = ({ violations = [], passes = [] }) => {
         };
     };
 
+    const handleRowClick = (index) => {
+        setExpandedIndex(expandedIndex === index ? null : index);
+    };
+
     return (
         <div className={styles.contrastContainer}>
             <div className={styles.checkerSection}>
@@ -113,7 +120,12 @@ const ContrastSummary = ({ violations = [], passes = [] }) => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {allPairs.length > 0 ? (
                         allPairs.map((pair, index) => (
-                            <ColorPairRow key={index} {...pair} />
+                            <ColorPairRow
+                                key={index}
+                                {...pair}
+                                expanded={expandedIndex === index}
+                                onClick={() => handleRowClick(index)}
+                            />
                         ))
                     ) : (
                         <p style={{ color: '#666', fontStyle: 'italic' }}>No color contrast data available.</p>
@@ -124,49 +136,72 @@ const ContrastSummary = ({ violations = [], passes = [] }) => {
     );
 };
 
-const ColorPairRow = ({ fg, bg, ratio, aa, aaa }) => (
-    <div style={{ border: '1px solid #eee', padding: 10, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 30, height: 30, background: fg, border: '1px solid #ccc', borderRadius: 4 }}></div>
-            <div style={{ display: 'flex', flexDirection: 'column', fontSize: 12 }}>
-                <span style={{ fontWeight: 'bold' }}>FG</span>
-                <span style={{ color: '#666' }}>{fg}</span>
+const ColorPairRow = ({ fg, bg, ratio, aa, aaa, isLarge, expanded, onClick }) => (
+    <div style={{ border: '1px solid #eee', borderRadius: 8, overflow: 'hidden' }}>
+        <div
+            onClick={onClick}
+            style={{
+                padding: 10,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                cursor: 'pointer',
+                backgroundColor: expanded ? '#f9f9f9' : 'transparent',
+                transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => !expanded && (e.currentTarget.style.backgroundColor = '#f9f9f9')}
+            onMouseLeave={(e) => !expanded && (e.currentTarget.style.backgroundColor = 'transparent')}
+        >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 30, height: 30, background: fg, border: '1px solid #ccc', borderRadius: 4 }}></div>
+                <div style={{ display: 'flex', flexDirection: 'column', fontSize: 12 }}>
+                    <span style={{ fontWeight: 'bold' }}>FG</span>
+                    <span style={{ color: '#666' }}>{fg}</span>
+                </div>
+                <span style={{ fontSize: 18 }}>→</span>
+                <div style={{ width: 30, height: 30, background: bg, border: '1px solid #ccc', borderRadius: 4 }}></div>
+                <div style={{ display: 'flex', flexDirection: 'column', fontSize: 12 }}>
+                    <span style={{ fontWeight: 'bold' }}>BG</span>
+                    <span style={{ color: '#666' }}>{bg}</span>
+                </div>
+                <div style={{ marginLeft: 15 }}>
+                    <div style={{ fontSize: 12, color: '#666' }}>Contrast Ratio</div>
+                    <div style={{ fontWeight: 'bold', fontSize: 14 }}>{ratio}:1</div>
+                </div>
             </div>
-            <span style={{ fontSize: 18 }}>→</span>
-            <div style={{ width: 30, height: 30, background: bg, border: '1px solid #ccc', borderRadius: 4 }}></div>
-            <div style={{ display: 'flex', flexDirection: 'column', fontSize: 12 }}>
-                <span style={{ fontWeight: 'bold' }}>BG</span>
-                <span style={{ color: '#666' }}>{bg}</span>
-            </div>
-            <div style={{ marginLeft: 15 }}>
-                <div style={{ fontSize: 12, color: '#666' }}>Contrast Ratio</div>
-                <div style={{ fontWeight: 'bold', fontSize: 14 }}>{ratio}:1</div>
+            <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: 5 }}>
+                    <span className={`${styles.badge} ${aa ? styles.pass : ''}`}
+                        style={{
+                            background: aa ? '#4CAF50' : '#F44336',
+                            color: 'white',
+                            padding: '4px 8px',
+                            borderRadius: 4,
+                            fontSize: 12,
+                            fontWeight: 'bold'
+                        }}>
+                        {aa ? 'AA Passed' : 'AA Failed'}
+                    </span>
+                    <span className={`${styles.badge} ${aaa ? styles.pass : ''}`}
+                        style={{
+                            background: aaa ? '#4CAF50' : '#F44336',
+                            color: 'white',
+                            padding: '4px 8px',
+                            borderRadius: 4,
+                            fontSize: 12,
+                            fontWeight: 'bold'
+                        }}>
+                        {aaa ? 'AAA Passed' : 'AAA Failed'}
+                    </span>
+                </div>
+                <span style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
             </div>
         </div>
-        <div style={{ display: 'flex', gap: 5 }}>
-            <span className={`${styles.badge} ${aa ? styles.pass : ''}`}
-                style={{
-                    background: aa ? '#4CAF50' : '#F44336',
-                    color: 'white',
-                    padding: '4px 8px',
-                    borderRadius: 4,
-                    fontSize: 12,
-                    fontWeight: 'bold'
-                }}>
-                {aa ? 'AA Passed' : 'AA Failed'}
-            </span>
-            <span className={`${styles.badge} ${aaa ? styles.pass : ''}`}
-                style={{
-                    background: aaa ? '#4CAF50' : '#F44336',
-                    color: 'white',
-                    padding: '4px 8px',
-                    borderRadius: 4,
-                    fontSize: 12,
-                    fontWeight: 'bold'
-                }}>
-                {aaa ? 'AAA Passed' : 'AAA Failed'}
-            </span>
-        </div>
+        {expanded && (
+            <div style={{ borderTop: '1px solid #eee', padding: '10px 20px', backgroundColor: '#fff' }}>
+                <ContrastChecker initialColors={{ fg, bg, isLarge }} embedded={true} />
+            </div>
+        )}
     </div>
 );
 
