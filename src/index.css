@@ -1,0 +1,50 @@
+:root {
+  /* Colors from Figma */
+  --bg-color: #F5F5F5;
+  --card-bg: #FFFFFF;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --accent-color: #E0E0E0; /* Tab background */
+  --active-tab-bg: #D1D1D1;
+  
+  /* Status Colors */
+  --color-pass: #4CAF50; /* Green */
+  --color-violation: #F44336; /* Red */
+  --color-warning: #FF9800; /* Orange */
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  
+  /* Borders */
+  --border-radius: 8px;
+  --border-radius-sm: 4px;
+  
+  /* Typography */
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-size-sm: 12px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-weight-bold: 600;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
