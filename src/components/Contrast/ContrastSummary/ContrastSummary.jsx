@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styles from '../Contrast.module.css';
 import ContrastChecker from '../ContrastChecker/ContrastChecker';
 
-const ContrastSummary = ({ violations = [], passes = [] }) => {
+const ContrastSummary = ({ violations = [], passes = [], highlightNode, clearHighlights }) => {
     const [expandedIndex, setExpandedIndex] = useState(null);
     const [filter, setFilter] = useState('all'); // 'all', 'aa', 'aaa'
 
@@ -42,7 +42,9 @@ const ContrastSummary = ({ violations = [], passes = [] }) => {
                 aa: aaPassed,
                 aaa: aaaPassed,
                 isLarge,
-                isViolation // Mark as violation if it came from the violations list (though individual checks might vary, usually if it's in violations, it failed something)
+                isLarge,
+                isViolation, // Mark as violation if it came from the violations list (though individual checks might vary, usually if it's in violations, it failed something)
+                target: node.target // Include the target for highlighting
             };
         }).filter(item => item !== null);
     };
@@ -92,7 +94,21 @@ const ContrastSummary = ({ violations = [], passes = [] }) => {
     };
 
     const handleRowClick = (index) => {
-        setExpandedIndex(expandedIndex === index ? null : index);
+        const newExpandedIndex = expandedIndex === index ? null : index;
+        setExpandedIndex(newExpandedIndex);
+
+        if (newExpandedIndex !== null) {
+            // Expanded a row
+            const pair = allPairs[newExpandedIndex];
+            if (pair && pair.target && highlightNode) {
+                highlightNode(pair.target);
+            }
+        } else {
+            // Collapsed only -> clear
+            if (clearHighlights) {
+                clearHighlights();
+            }
+        }
     };
 
     return (
@@ -191,7 +207,7 @@ const ContrastSummary = ({ violations = [], passes = [] }) => {
 };
 
 const ColorPairRow = ({ fg, bg, ratio, aa, aaa, isLarge, expanded, onClick }) => (
-    <div style={{ border: '1px solid #eee', borderRadius: 8, overflow: 'hidden' }}>
+    <div style={{ border: '1px solid #000', borderRadius: 8, overflow: 'hidden' }}>
         <div
             onClick={onClick}
             style={{
