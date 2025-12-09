@@ -1,0 +1,134 @@
+.contrastContainer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.checkerSection {
+    background: white;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+}
+
+.description {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-md);
+}
+
+.inputGroup {
+    margin-bottom: var(--spacing-md);
+}
+
+.inputGroup label {
+    display: block;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.colorInputWrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.textInput {
+    background: #e0e0e0;
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    flex: 1;
+}
+
+.colorPicker {
+    width: 40px;
+    height: 32px;
+    border: none;
+    padding: 0;
+    background: none;
+    cursor: pointer;
+}
+
+.previewBox {
+    border: 1px solid #eee;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--spacing-md);
+}
+
+.ratioBox {
+    background: white;
+    border: 1px solid #eee;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    text-align: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.ratioValue {
+    display: block;
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 4px;
+}
+
+.complianceSection {
+    margin-bottom: var(--spacing-md);
+}
+
+.complianceRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+}
+
+.badges {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: bold;
+    border: 1px solid #ccc;
+}
+
+.pass {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+}
+
+.recommendation {
+    background: #e8f5e9;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    font-size: var(--font-size-sm);
+    text-align: center;
+}
+
+.contrastLayout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.subSection {
+    width: 100%;
+}
+
+@media (min-width: 1024px) {
+    .contrastLayout {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .subSection {
+        flex: 1;
+    }
+}
