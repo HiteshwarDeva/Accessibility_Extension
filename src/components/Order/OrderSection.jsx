@@ -81,6 +81,7 @@ const OrderSection = () => {
                                 order={item.order}
                                 role={item.role}
                                 name={item.name}
+                                tabindex={item.tabindex}
                                 onHighlight={handleHighlight}
                             />
                         ))}

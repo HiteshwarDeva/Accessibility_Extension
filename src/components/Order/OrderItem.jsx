@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './Order.module.css';
 
-const OrderItem = ({ order, role, name, onHighlight }) => {
+const OrderItem = ({ order, role, name, tabindex, onHighlight }) => {
     const handleClick = () => {
         if (onHighlight) {
             onHighlight(order);
@@ -14,6 +14,9 @@ const OrderItem = ({ order, role, name, onHighlight }) => {
             <div className={styles.orderContent}>
                 <span className={styles.orderRole}>{role}:</span>
                 <span className={styles.orderName}>{name}</span>
+                {tabindex !== null && tabindex !== undefined && tabindex !== 0 && (
+                    <span className={styles.tabindexBadge}>tabindex={tabindex}</span>
+                )}
             </div>
         </div>
     );

@@ -139,51 +139,179 @@ function ensureHighlightStyle() {
 }
 
 function getTabOrder() {
-  // Get all focusable elements in the document
+  // Get all potentially focusable elements in the document
   const focusableSelectors = [
     'a[href]',
     'button:not([disabled])',
     'input:not([disabled])',
     'select:not([disabled])',
     'textarea:not([disabled])',
-    '[tabindex]:not([tabindex="-1"])',
+    '[tabindex]', // Include all tabindex elements (we'll filter -1 later)
     'area[href]',
     'iframe',
     'object',
     'embed',
-    '[contenteditable]',
+    '[contenteditable="true"]', // Only true, not false
     'audio[controls]',
     'video[controls]',
-    'summary'
+    'summary',
+    // Custom interactive elements with ARIA roles
+    '[role="button"]',
+    '[role="link"]',
+    '[role="checkbox"]',
+    '[role="radio"]',
+    '[role="slider"]',
+    '[role="spinbutton"]',
+    '[role="switch"]',
+    '[role="tab"]',
+    '[role="menuitem"]',
+    '[role="menuitemcheckbox"]',
+    '[role="menuitemradio"]',
+    '[role="option"]',
+    '[role="textbox"]',
+    '[role="searchbox"]',
+    '[role="combobox"]'
   ];
 
   const elements = Array.from(document.querySelectorAll(focusableSelectors.join(', ')));
 
-  // Filter out hidden elements
-  const visibleElements = elements.filter(el => {
+  // Filter elements based on focusability rules
+  const focusableElements = elements.filter(el => {
+    // Check if element has tabindex="-1" (explicitly removed from tab order)
+    const tabindex = el.getAttribute('tabindex');
+    if (tabindex === '-1') {
+      return false;
+    }
+
+    // Check if element is disabled
+    if (el.disabled || el.hasAttribute('disabled')) {
+      return false;
+    }
+
+    // Check if element is hidden
+    if (el.hasAttribute('hidden')) {
+      return false;
+    }
+
+    // Check computed styles for visibility
     const style = window.getComputedStyle(el);
-    return style.display !== 'none' &&
-      style.visibility !== 'hidden' &&
-      el.offsetParent !== null;
+    if (style.display === 'none' || style.visibility === 'hidden') {
+      return false;
+    }
+
+    // Check if element has zero dimensions (effectively hidden)
+    const rect = el.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) {
+      return false;
+    }
+
+    // Check if any parent is hidden
+    let parent = el.parentElement;
+    while (parent) {
+      if (parent.hasAttribute('hidden')) {
+        return false;
+      }
+      const parentStyle = window.getComputedStyle(parent);
+      if (parentStyle.display === 'none' || parentStyle.visibility === 'hidden') {
+        return false;
+      }
+      parent = parent.parentElement;
+    }
+
+    // For custom interactive elements (div, span with roles), check if they have tabindex
+    const tagName = el.tagName.toLowerCase();
+    const role = el.getAttribute('role');
+    const interactiveRoles = [
+      'button', 'link', 'checkbox', 'radio', 'slider', 'spinbutton',
+      'switch', 'tab', 'menuitem', 'menuitemcheckbox', 'menuitemradio',
+      'option', 'textbox', 'searchbox', 'combobox'
+    ];
+
+    if ((tagName === 'div' || tagName === 'span') && interactiveRoles.includes(role)) {
+      // Custom interactive elements must have tabindex to be focusable
+      if (!el.hasAttribute('tabindex') || tabindex === '-1') {
+        return false;
+      }
+    }
+
+    // Check if contenteditable is explicitly false
+    if (el.getAttribute('contenteditable') === 'false') {
+      return false;
+    }
+
+    return true;
   });
 
-  // Sort by tab index (0 and positive values first, then natural DOM order)
-  const sortedElements = visibleElements.sort((a, b) => {
+  // Remove duplicates (an element might match multiple selectors)
+  const uniqueElements = [...new Set(focusableElements)];
+
+  // Sort by tab index following the HTML spec:
+  // 1. Elements with positive tabindex (1, 2, 3...) in ascending order
+  // 2. Elements with tabindex="0" or no tabindex in DOM order
+  // 3. Elements with tabindex="-1" are excluded (already filtered above)
+  const sortedElements = uniqueElements.sort((a, b) => {
     const aIndex = parseInt(a.getAttribute('tabindex')) || 0;
     const bIndex = parseInt(b.getAttribute('tabindex')) || 0;
 
-    if (aIndex > 0 && bIndex > 0) return aIndex - bIndex;
-    if (aIndex > 0) return -1;
-    if (bIndex > 0) return 1;
-    return 0;
+    // Both have positive tabindex - sort by value
+    if (aIndex > 0 && bIndex > 0) {
+      return aIndex - bIndex;
+    }
+
+    // Only 'a' has positive tabindex - it comes first
+    if (aIndex > 0) {
+      return -1;
+    }
+
+    // Only 'b' has positive tabindex - it comes first
+    if (bIndex > 0) {
+      return 1;
+    }
+
+    // Both have tabindex 0 or no tabindex - maintain DOM order
+    // Compare their position in the document
+    if (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) {
+      return -1;
+    }
+    return 1;
   });
 
-  // Build the tab order data
-  return sortedElements.map((el, index) => ({
-    order: index + 1,
-    role: getElementRole(el),
-    name: getAccessibleName(el)
-  }));
+  // Build the tab order data with tabindex information
+  return sortedElements.map((el, index) => {
+    const tabindex = el.getAttribute('tabindex');
+    return {
+      order: index + 1,
+      role: getElementRole(el),
+      name: getAccessibleName(el),
+      tabindex: tabindex ? parseInt(tabindex) : (isNaturallyFocusable(el) ? 0 : null)
+    };
+  });
+}
+
+// Helper function to check if element is naturally focusable
+function isNaturallyFocusable(element) {
+  const tagName = element.tagName.toLowerCase();
+  const naturallyFocusable = [
+    'a', 'button', 'input', 'select', 'textarea', 'area',
+    'iframe', 'object', 'embed', 'audio', 'video', 'summary'
+  ];
+
+  if (naturallyFocusable.includes(tagName)) {
+    // Check specific conditions
+    if (tagName === 'a' || tagName === 'area') {
+      return element.hasAttribute('href');
+    }
+    if (tagName === 'audio' || tagName === 'video') {
+      return element.hasAttribute('controls');
+    }
+    return true;
+  }
+
+  if (element.getAttribute('contenteditable') === 'true') {
+    return true;
+  }
+
+  return false;
 }
 
 function getElementRole(element) {
@@ -334,45 +462,8 @@ function showTabOrderOverlay() {
   // Inject overlay styles
   injectOverlayStyles();
 
-  // Get all focusable elements again to match with tab order
-  const focusableSelectors = [
-    'a[href]',
-    'button:not([disabled])',
-    'input:not([disabled])',
-    'select:not([disabled])',
-    'textarea:not([disabled])',
-    '[tabindex]:not([tabindex="-1"])',
-    'area[href]',
-    'iframe',
-    'object',
-    'embed',
-    '[contenteditable]',
-    'audio[controls]',
-    'video[controls]',
-    'summary'
-  ];
-
-  const elements = Array.from(document.querySelectorAll(focusableSelectors.join(', ')));
-
-  // Filter out hidden elements
-  const visibleElements = elements.filter(el => {
-    const style = window.getComputedStyle(el);
-    return style.display !== 'none' &&
-      style.visibility !== 'hidden' &&
-      el.offsetParent !== null;
-  });
-
-  // Sort by tab index
-  const sortedElements = visibleElements.sort((a, b) => {
-    const aIndex = parseInt(a.getAttribute('tabindex')) || 0;
-    const bIndex = parseInt(b.getAttribute('tabindex')) || 0;
-
-    if (aIndex > 0 && bIndex > 0) return aIndex - bIndex;
-    if (aIndex > 0) return -1;
-    if (bIndex > 0) return 1;
-    return 0;
-  });
-
+  // Get all focusable elements using the same logic as getTabOrder
+  const sortedElements = getFocusableElements();
 
   // Create overlay badges for each element and collect them
   const badges = [];
@@ -385,6 +476,99 @@ function showTabOrderOverlay() {
   createArrowConnectors(badges);
 }
 
+// Shared helper function to get focusable elements with proper filtering and sorting
+function getFocusableElements() {
+  // Get all potentially focusable elements in the document
+  const focusableSelectors = [
+    'a[href]',
+    'button:not([disabled])',
+    'input:not([disabled])',
+    'select:not([disabled])',
+    'textarea:not([disabled])',
+    '[tabindex]',
+    'area[href]',
+    'iframe',
+    'object',
+    'embed',
+    '[contenteditable="true"]',
+    'audio[controls]',
+    'video[controls]',
+    'summary',
+    '[role="button"]',
+    '[role="link"]',
+    '[role="checkbox"]',
+    '[role="radio"]',
+    '[role="slider"]',
+    '[role="spinbutton"]',
+    '[role="switch"]',
+    '[role="tab"]',
+    '[role="menuitem"]',
+    '[role="menuitemcheckbox"]',
+    '[role="menuitemradio"]',
+    '[role="option"]',
+    '[role="textbox"]',
+    '[role="searchbox"]',
+    '[role="combobox"]'
+  ];
+
+  const elements = Array.from(document.querySelectorAll(focusableSelectors.join(', ')));
+
+  // Filter elements based on focusability rules
+  const focusableElements = elements.filter(el => {
+    const tabindex = el.getAttribute('tabindex');
+    if (tabindex === '-1') return false;
+    if (el.disabled || el.hasAttribute('disabled')) return false;
+    if (el.hasAttribute('hidden')) return false;
+
+    const style = window.getComputedStyle(el);
+    if (style.display === 'none' || style.visibility === 'hidden') return false;
+
+    const rect = el.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) return false;
+
+    let parent = el.parentElement;
+    while (parent) {
+      if (parent.hasAttribute('hidden')) return false;
+      const parentStyle = window.getComputedStyle(parent);
+      if (parentStyle.display === 'none' || parentStyle.visibility === 'hidden') return false;
+      parent = parent.parentElement;
+    }
+
+    const tagName = el.tagName.toLowerCase();
+    const role = el.getAttribute('role');
+    const interactiveRoles = [
+      'button', 'link', 'checkbox', 'radio', 'slider', 'spinbutton',
+      'switch', 'tab', 'menuitem', 'menuitemcheckbox', 'menuitemradio',
+      'option', 'textbox', 'searchbox', 'combobox'
+    ];
+
+    if ((tagName === 'div' || tagName === 'span') && interactiveRoles.includes(role)) {
+      if (!el.hasAttribute('tabindex') || tabindex === '-1') return false;
+    }
+
+    if (el.getAttribute('contenteditable') === 'false') return false;
+
+    return true;
+  });
+
+  const uniqueElements = [...new Set(focusableElements)];
+
+  // Sort by tab index following HTML spec
+  return uniqueElements.sort((a, b) => {
+    const aIndex = parseInt(a.getAttribute('tabindex')) || 0;
+    const bIndex = parseInt(b.getAttribute('tabindex')) || 0;
+
+    if (aIndex > 0 && bIndex > 0) return aIndex - bIndex;
+    if (aIndex > 0) return -1;
+    if (bIndex > 0) return 1;
+
+    if (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) {
+      return -1;
+    }
+    return 1;
+  });
+}
+
 function createOverlayBadge(element, orderNumber) {
   const rect = element.getBoundingClientRect();
 
@@ -393,8 +577,8 @@ function createOverlayBadge(element, orderNumber) {
   badge.className = TAB_ORDER_OVERLAY_CLASS;
   badge.textContent = orderNumber;
 
-  // Position the badge
-  badge.style.position = 'fixed';
+  // Position the badge - use absolute positioning so it scrolls with the page
+  badge.style.position = 'absolute';
   badge.style.left = `${rect.left + window.scrollX}px`;
   badge.style.top = `${rect.top + window.scrollY}px`;
   badge.style.zIndex = '2147483647'; // Maximum z-index
@@ -419,13 +603,32 @@ function createArrowConnectors(badges) {
   // Create SVG container
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('class', '__tab_order_arrows');
-  svg.style.position = 'fixed';
+  svg.style.position = 'absolute';
   svg.style.top = '0';
   svg.style.left = '0';
-  svg.style.width = '100%';
-  svg.style.height = '100%';
+  svg.style.width = `${document.documentElement.scrollWidth}px`;
+  svg.style.height = `${document.documentElement.scrollHeight}px`;
   svg.style.pointerEvents = 'none';
   svg.style.zIndex = '2147483646'; // Just below badges
+
+  // Create arrowhead marker definition first
+  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+  const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+  marker.setAttribute('id', 'arrowhead');
+  marker.setAttribute('markerWidth', '10');
+  marker.setAttribute('markerHeight', '10');
+  marker.setAttribute('refX', '9');
+  marker.setAttribute('refY', '3');
+  marker.setAttribute('orient', 'auto');
+
+  const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  polygon.setAttribute('points', '0 0, 10 3, 0 6');
+  polygon.setAttribute('fill', '#5b9bd5');
+
+  marker.appendChild(polygon);
+  defs.appendChild(marker);
+  svg.appendChild(defs);
+
   document.body.appendChild(svg);
 
   // Draw arrows between consecutive badges
@@ -436,11 +639,11 @@ function createArrowConnectors(badges) {
     const fromRect = fromBadge.getBoundingClientRect();
     const toRect = toBadge.getBoundingClientRect();
 
-    // Calculate center points of badges
-    const fromX = fromRect.left + fromRect.width / 2;
-    const fromY = fromRect.top + fromRect.height / 2;
-    const toX = toRect.left + toRect.width / 2;
-    const toY = toRect.top + toRect.height / 2;
+    // Calculate center points of badges (add scroll offset for absolute positioning)
+    const fromX = fromRect.left + fromRect.width / 2 + window.scrollX;
+    const fromY = fromRect.top + fromRect.height / 2 + window.scrollY;
+    const toX = toRect.left + toRect.width / 2 + window.scrollX;
+    const toY = toRect.top + toRect.height / 2 + window.scrollY;
 
     // Create arrow path
     const arrow = createArrowPath(fromX, fromY, toX, toY);
@@ -453,7 +656,6 @@ function createArrowPath(x1, y1, x2, y2) {
   const dx = x2 - x1;
   const dy = y2 - y1;
   const angle = Math.atan2(dy, dx);
-  const distance = Math.sqrt(dx * dx + dy * dy);
 
   // Shorten the line to not overlap with badges (14px radius each)
   const offset = 18; // Badge radius + small gap
@@ -471,26 +673,6 @@ function createArrowPath(x1, y1, x2, y2) {
   line.setAttribute('stroke', '#5b9bd5');
   line.setAttribute('stroke-width', '2');
   line.setAttribute('marker-end', 'url(#arrowhead)');
-
-  // Create arrowhead marker if it doesn't exist
-  if (!document.getElementById('arrowhead')) {
-    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
-    marker.setAttribute('id', 'arrowhead');
-    marker.setAttribute('markerWidth', '10');
-    marker.setAttribute('markerHeight', '10');
-    marker.setAttribute('refX', '9');
-    marker.setAttribute('refY', '3');
-    marker.setAttribute('orient', 'auto');
-
-    const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-    polygon.setAttribute('points', '0 0, 10 3, 0 6');
-    polygon.setAttribute('fill', '#5b9bd5');
-
-    marker.appendChild(polygon);
-    defs.appendChild(marker);
-    line.parentNode?.insertBefore(defs, line) || document.querySelector('.__tab_order_arrows')?.appendChild(defs);
-  }
 
   return line;
 }
@@ -531,41 +713,8 @@ function hideTabOrderOverlay() {
 }
 
 function highlightTabOrderElement(orderNumber) {
-  // Get all focusable elements to find the one matching this order
-  const focusableSelectors = [
-    'a[href]',
-    'button:not([disabled])',
-    'input:not([disabled])',
-    'select:not([disabled])',
-    'textarea:not([disabled])',
-    '[tabindex]:not([tabindex="-1"])',
-    'area[href]',
-    'iframe',
-    'object',
-    'embed',
-    '[contenteditable]',
-    'audio[controls]',
-    'video[controls]',
-    'summary'
-  ];
-
-  const elements = Array.from(document.querySelectorAll(focusableSelectors.join(', ')));
-  const visibleElements = elements.filter(el => {
-    const style = window.getComputedStyle(el);
-    return style.display !== 'none' &&
-      style.visibility !== 'hidden' &&
-      el.offsetParent !== null;
-  });
-
-  const sortedElements = visibleElements.sort((a, b) => {
-    const aIndex = parseInt(a.getAttribute('tabindex')) || 0;
-    const bIndex = parseInt(b.getAttribute('tabindex')) || 0;
-
-    if (aIndex > 0 && bIndex > 0) return aIndex - bIndex;
-    if (aIndex > 0) return -1;
-    if (bIndex > 0) return 1;
-    return 0;
-  });
+  // Get all focusable elements using the same logic
+  const sortedElements = getFocusableElements();
 
   // Find the element at this order position
   let targetElement = null;
@@ -603,11 +752,11 @@ function blinkElementBoundingBox(element) {
   const boundingBox = document.createElement('div');
   boundingBox.className = '__tab_order_bounding_box';
 
-  // Position it over the element
+  // Position it over the element (use absolute positioning so it scrolls with the page)
   const rect = element.getBoundingClientRect();
-  boundingBox.style.position = 'fixed';
-  boundingBox.style.left = `${rect.left - 4}px`;
-  boundingBox.style.top = `${rect.top - 4}px`;
+  boundingBox.style.position = 'absolute';
+  boundingBox.style.left = `${rect.left + window.scrollX - 4}px`;
+  boundingBox.style.top = `${rect.top + window.scrollY - 4}px`;
   boundingBox.style.width = `${rect.width + 8}px`;
   boundingBox.style.height = `${rect.height + 8}px`;
   boundingBox.style.border = '3px solid #fbbf24';
@@ -664,7 +813,7 @@ function injectOverlayStyles() {
   style.id = TAB_ORDER_STYLE_ID;
   style.textContent = `
     .${TAB_ORDER_OVERLAY_CLASS} {
-      position: fixed !important;
+      position: absolute !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;

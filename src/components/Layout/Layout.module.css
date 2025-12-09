@@ -18,3 +18,29 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     padding: var(--spacing-md);
 }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding: var(--spacing-sm);
+    }
+
+    .content {
+        padding: var(--spacing-sm);
+        border-radius: var(--border-radius-sm);
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 4px;
+    }
+
+    .header {
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .content {
+        padding: 8px;
+    }
+}

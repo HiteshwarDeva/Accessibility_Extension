@@ -2,6 +2,7 @@
     display: flex;
     gap: var(--spacing-sm);
     background-color: transparent;
+    flex-wrap: wrap;
 }
 
 .tab {
@@ -23,4 +24,16 @@
     /* Darker grey for active state */
     color: var(--text-primary);
     font-weight: var(--font-weight-bold);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .tabs {
+        gap: 4px;
+    }
+
+    .tab {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
 }

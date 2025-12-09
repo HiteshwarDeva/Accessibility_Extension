@@ -43,6 +43,22 @@
     gap: 24px;
 }
 
+/* Mobile first - single column */
+@media (max-width: 767px) {
+    .content-grid {
+        gap: 16px;
+    }
+}
+
+/* Tablet - 2 columns */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .content-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+/* Desktop - 2 columns with sidebar */
 @media (min-width: 1024px) {
     .content-grid {
         grid-template-columns: 360px 1fr;
@@ -58,6 +74,7 @@
     }
 }
 
+/* Large desktop - 3 columns */
 @media (min-width: 1280px) {
     .content-grid {
         grid-template-columns: 360px 1fr 1fr;
@@ -348,7 +365,7 @@
     gap: 12px;
 }
 
-.help-section + .help-section {
+.help-section+.help-section {
     border-top: 1px solid #d9f99d;
     padding-top: 12px;
 }
@@ -445,4 +462,154 @@
     color: #94a3b8;
     text-align: center;
     margin: 12px 0;
+}
+
+/* Additional responsive adjustments */
+@media (max-width: 768px) {
+
+    .summary-card,
+    .panel {
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    .summary-title,
+    .panel-title {
+        font-size: 0.95rem;
+    }
+
+    .summary-chart {
+        width: 100px;
+        height: 100px;
+    }
+
+    .summary-content {
+        gap: 16px;
+    }
+
+    .category-header {
+        padding: 12px 16px;
+    }
+
+    .item-card {
+        padding: 16px;
+    }
+
+    .btn {
+        padding: 8px 14px;
+        font-size: 0.85rem;
+    }
+
+    .icon-btn {
+        width: 38px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .summary-card,
+    .panel {
+        padding: 12px;
+        border-radius: 12px;
+    }
+
+    .summary-title {
+        font-size: 0.9rem;
+    }
+
+    .panel-title {
+        font-size: 0.85rem;
+    }
+
+    .badge {
+        padding: 4px 10px;
+        font-size: 0.75rem;
+    }
+
+    .summary-chart {
+        width: 80px;
+        height: 80px;
+    }
+
+    .summary-content {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .summary-list p {
+        font-size: 0.85rem;
+    }
+
+    .summary-footer {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .summary-buttons {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .btn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        flex: 1;
+    }
+
+    .icon-btn {
+        width: 36px;
+        padding: 6px;
+    }
+
+    .category-header {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+    }
+
+    .count-pill {
+        padding: 3px 10px;
+        font-size: 0.75rem;
+    }
+
+    .category-body {
+        padding: 12px;
+    }
+
+    .item-card {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .item-title {
+        font-size: 0.9rem;
+    }
+
+    .item-help {
+        font-size: 0.85rem;
+    }
+
+    .code-snippet {
+        font-size: 0.75rem;
+        padding: 10px;
+    }
+
+    .highlight-btn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+
+    .nav-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .impact-badge {
+        padding: 3px 10px;
+        font-size: 0.75rem;
+    }
+
+    .tag {
+        padding: 2px 8px;
+        font-size: 0.7rem;
+    }
 }

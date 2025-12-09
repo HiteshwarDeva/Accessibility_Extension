@@ -88,6 +88,7 @@
 .badges {
     display: flex;
     gap: var(--spacing-sm);
+    flex-wrap: wrap;
 }
 
 .badge {
@@ -130,5 +131,70 @@
 
     .subSection {
         flex: 1;
+    }
+}
+
+/* Additional responsive adjustments */
+@media (max-width: 768px) {
+    .checkerSection {
+        padding: 12px;
+    }
+
+    .ratioValue {
+        font-size: 20px;
+    }
+
+    .complianceRow {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .contrastContainer {
+        gap: 8px;
+    }
+
+    .checkerSection {
+        padding: 10px;
+        border-radius: var(--border-radius-sm);
+    }
+
+    .description {
+        font-size: 11px;
+    }
+
+    .inputGroup label {
+        font-size: 11px;
+    }
+
+    .textInput {
+        padding: 6px;
+        font-size: 12px;
+    }
+
+    .colorPicker {
+        width: 36px;
+        height: 28px;
+    }
+
+    .previewBox,
+    .ratioBox {
+        padding: 10px;
+    }
+
+    .ratioValue {
+        font-size: 18px;
+    }
+
+    .badge {
+        padding: 3px 10px;
+        font-size: 9px;
+    }
+
+    .recommendation {
+        padding: 10px;
+        font-size: 11px;
     }
 }
