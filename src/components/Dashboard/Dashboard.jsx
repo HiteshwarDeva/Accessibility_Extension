@@ -4,13 +4,21 @@ import { useAxeRunner } from '../../hooks/useAxeRunner';
 import DetailsSection from './DetailsSection';
 import Toast from './Toast';
 
-const buildSummary = (results) => {
+const buildSummary = (results, bestPracticesRuleCount = 0, bestPracticesNodeCount = 0, impacts = {}) => {
     const passed = results?.passes?.length || 0;
-    const violations = results?.violations?.length || 0;
+    const strictViolationsCount = results?.violations?.length || 0;
+    const strictViolationsRuleCount = strictViolationsCount - bestPracticesRuleCount;
+
     return {
-        total_tests: passed + violations,
+        total_tests: passed + strictViolationsRuleCount + bestPracticesRuleCount,
         passed,
-        violations,
+        violations: strictViolationsRuleCount,
+        bestPractices: bestPracticesRuleCount, // Rule count for left side
+        bestPracticesNodes: bestPracticesNodeCount, // Node count for right side
+        critical: impacts.critical || 0,
+        serious: impacts.serious || 0,
+        moderate: impacts.moderate || 0,
+        minor: impacts.minor || 0,
         url: results?.url || (typeof window !== 'undefined' ? window.location.href : 'Current page'),
         timestamp: results?.timestamp || Date.now()
     };
@@ -52,6 +60,7 @@ const Dashboard = () => {
     const hasResults = Boolean(results);
     const [toastMessage, setToastMessage] = useState(null);
     const [highlightedItemId, setHighlightedItemId] = useState(null);
+    const [showBestPractices, setShowBestPractices] = useState(false);
 
     useEffect(() => {
         if (!results && !isScanning) {
@@ -67,8 +76,34 @@ const Dashboard = () => {
         }
     }, [results, clearHighlights]);
 
-    const summary = useMemo(() => buildSummary(results || {}), [results]);
-    const violationCategories = useMemo(() => formatCategories(results?.violations || [], 'violations'), [results]);
+    const { strictViolations, bestPractices, impacts, bestPracticesNodeCount } = useMemo(() => {
+        const allViolations = results?.violations || [];
+        const strict = [];
+        const best = [];
+        const impactCounts = { critical: 0, serious: 0, moderate: 0, minor: 0 };
+        let bpNodeCount = 0;
+
+        allViolations.forEach(violation => {
+            const nodeCount = violation.nodes?.length || 0;
+            if (violation.tags && violation.tags.includes('best-practice')) {
+                best.push(violation);
+                bpNodeCount += nodeCount;
+            } else {
+                strict.push(violation);
+                const impact = violation.impact; // 'critical', 'serious', 'moderate', 'minor'
+                if (impact && impactCounts.hasOwnProperty(impact)) {
+                    impactCounts[impact] += nodeCount;
+                }
+            }
+        });
+
+        return { strictViolations: strict, bestPractices: best, impacts: impactCounts, bestPracticesNodeCount: bpNodeCount };
+    }, [results]);
+
+    const summary = useMemo(() => buildSummary(results || {}, bestPractices.length, bestPracticesNodeCount, impacts), [results, bestPractices.length, bestPracticesNodeCount, impacts]);
+
+    const violationCategories = useMemo(() => formatCategories(strictViolations, 'violations'), [strictViolations]);
+    const bestPracticeCategories = useMemo(() => formatCategories(bestPractices, 'violations'), [bestPractices]);
     const successCategories = useMemo(() => formatCategories(results?.passes || [], 'passes'), [results]);
 
     const handleHighlight = (item) => {
@@ -113,6 +148,7 @@ const Dashboard = () => {
         const reportData = {
             summary,
             violations: violationCategories,
+            bestPractices: bestPracticeCategories,
             success: successCategories
         };
 
@@ -135,33 +171,29 @@ const Dashboard = () => {
                 </div>
             )}
 
-            {!isScanning && !hasResults && (
-                <div className={styles.emptyState}>
-                    <p>Trigger a scan to view accessibility insights.</p>
-                    <button className={styles.primaryBtn} type="button" onClick={runScan}>
-                        Run Tests
-                    </button>
-                </div>
-            )}
+
 
             {hasResults && (
                 <DetailsSection
                     summary={summary}
                     violations={violationCategories}
+                    bestPractices={bestPracticeCategories}
                     passed={successCategories}
                     onHighlight={handleHighlight}
                     onReRun={runScan}
                     onDownloadReport={handleDownloadReport}
                     highlightedItemId={highlightedItemId}
+                    showBestPractices={showBestPractices}
+                    setShowBestPractices={setShowBestPractices}
                 />
             )}
 
             {error && <p className={styles.errorMessage}>{error}</p>}
-            
+
             {toastMessage && (
-                <Toast 
-                    message={toastMessage} 
-                    onClose={() => setToastMessage(null)} 
+                <Toast
+                    message={toastMessage}
+                    onClose={() => setToastMessage(null)}
                 />
             )}
         </div>

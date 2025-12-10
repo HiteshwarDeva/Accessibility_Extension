@@ -117,27 +117,3 @@ function isMissingReceiverError(message) {
         message.includes('Could not establish connection') &&
         message.includes('Receiving end does not exist');
 }
-
-// Mock data for development
-const mockResults = {
-    violations: [
-        {
-            id: "aria-allowed-attr",
-            impact: "serious",
-            help: "Elements must only use supported ARIA attributes",
-            nodes: [
-                { html: "<div role=\"button\" aria-expanded=\"false\">", target: ["div"] },
-                { html: "<span role=\"img\" aria-label=\"foo\">", target: ["span"] }
-            ]
-        },
-        {
-            id: "color-contrast",
-            impact: "critical",
-            help: "Elements must have sufficient color contrast",
-            nodes: [
-                { html: "<p style=\"color: #ccc; background: #fff\">Text</p>", target: ["p"] }
-            ]
-        }
-    ],
-    passes: new Array(96).fill({})
-};

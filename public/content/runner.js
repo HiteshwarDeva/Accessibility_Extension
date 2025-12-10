@@ -176,26 +176,6 @@ function findElement(selectorData) {
 /**
  * Applies highlight styling to an element
  */
-// function applyHighlight(element) {
-//   if (!element) return;
-
-//   if (!element.__axePrevStyles) {
-//     element.__axePrevStyles = {
-//       outline: element.style.outline,
-//       outlineOffset: element.style.outlineOffset,
-//       boxShadow: element.style.boxShadow,
-//       position: element.style.position,
-//       zIndex: element.style.zIndex
-//     };
-//   }
-
-//   element.classList.add(HIGHLIGHT_CLASS);
-//   element.style.outline = '3px solid #00ff00';
-//   element.style.outlineOffset = '3px';
-//   element.style.boxShadow = '0 0 0 3px rgba(0, 255, 0, 0.3), 0 0 20px rgba(0, 255, 0, 0.5)';
-//   element.style.position = 'relative';
-//   element.style.zIndex = '999999';
-// }
 
 function applyHighlight(element) {
   if (!element) return;
