@@ -29,7 +29,7 @@ export const useAxeRunner = () => {
     }, []);
 
     const clearHighlightsContrast = useCallback(() => {
-        sendMessageToInspectedTab({ type: 'clear-highlights' }, () => { });
+        sendMessageToInspectedTab({ type: 'clear-highlights-contrast' }, () => { });
     }, []);
 
     return {
