@@ -1,29 +1,35 @@
 import React from 'react';
 import Layout from './components/Layout/Layout';
 import Dashboard from './components/Dashboard/Dashboard';
-import ContrastChecker from './components/Contrast/ContrastChecker';
-import ContrastSummary from './components/Contrast/ContrastSummary';
+import ContrastSection from './components/Contrast/ContrastSection';
+import { useAxeRunner } from './hooks/useAxeRunner';
 
 function App() {
+  const axeRunnerData = useAxeRunner();
+
   return (
     <Layout>
-      <Content />
+      <Content axeRunnerData={axeRunnerData} />
     </Layout>
   );
 }
 
-const Content = ({ activeTab }) => {
+const Placeholder = ({ message }) => (
+  <div style={{ padding: 20, textAlign: 'center' }}>{message}</div>
+);
+
+const Content = ({ activeTab, axeRunnerData }) => {
   switch (activeTab) {
     case 'details':
-      return <Dashboard />;
+      return <Dashboard {...axeRunnerData} />;
     case 'contrast':
-      return <ContrastChecker />;
+      return <ContrastSection results={axeRunnerData.results} highlightNode={axeRunnerData.highlightNode} clearHighlights={axeRunnerData.clearHighlights} />;
     case 'order':
-      return <div style={{ padding: 20, textAlign: 'center' }}>Order View (Coming Soon)</div>;
+      return <Placeholder message="Order View (Coming Soon)" />;
     case 'structure':
-      return <ContrastSummary />;
+      return <Placeholder message="Structure View (Coming Soon)" />;
     default:
-      return <Dashboard />;
+      return <Dashboard {...axeRunnerData} />;
   }
 };
 

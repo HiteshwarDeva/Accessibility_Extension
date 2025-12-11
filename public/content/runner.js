@@ -44,9 +44,17 @@ function highlightTargets(selectors) {
     return;
   }
   ensureHighlightStyle();
+  let scrolled = false;
   selectors.forEach((selector) => {
     try {
-      document.querySelectorAll(selector).forEach((node) => applyHighlight(node));
+      document.querySelectorAll(selector).forEach((node) => {
+        applyHighlight(node);
+        if (!scrolled) {
+          console.log('[Axe Extension] Scrolling to node:', node);
+          node.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' });
+          scrolled = true;
+        }
+      });
     } catch (e) {
       // ignore invalid selectors
     }
@@ -63,9 +71,14 @@ function applyHighlight(node) {
     };
   }
   node.classList.add(HIGHLIGHT_CLASS);
-  node.style.outline = '3px dashed rgba(255,0,0,0.9)';
-  node.style.outlineOffset = '3px';
-  node.style.boxShadow = '0 0 0 3px rgba(255,0,0,0.12)';
+  node.style.outline = '3px solid #39FF14';
+  node.style.outlineOffset = '4px';
+  node.style.boxShadow =
+    '0 0 0 3px rgba(57, 255, 20, 0.45), ' + // inner glow 
+    '0 0 12px rgba(57, 255, 20, 0.85)'; // outer glow;
+
+  node.style.position = 'relative';
+  node.style.zIndex = '99999';
 }
 
 function clearHighlights() {

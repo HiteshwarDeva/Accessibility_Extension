@@ -1,17 +1,19 @@
 import React from 'react';
 import styles from './Tabs.module.css';
 
-const Tabs = ({ activeTab, onTabChange }) => {
-    const tabs = [
+const Tabs = ({ activeTab, onTabChange, tabs }) => {
+    const defaultTabs = [
         { id: 'details', label: 'Details' },
         { id: 'order', label: 'Order' },
         { id: 'structure', label: 'Structure' },
-        { id: 'contrast', label: 'Contrast' },
+        { id: 'contrast', label: 'Contrast' }
     ];
+
+    const displayTabs = tabs || defaultTabs;
 
     return (
         <div className={styles.tabs}>
-            {tabs.map(tab => (
+            {displayTabs.map(tab => (
                 <button
                     key={tab.id}
                     className={`${styles.tab} ${activeTab === tab.id ? styles.active : ''}`}
