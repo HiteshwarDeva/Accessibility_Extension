@@ -27,28 +27,28 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === 'highlight-nodes') {
-    highlightTargets(message.selectors || []);
+    highlightTargetsContrast(message.selectors || []);
     sendResponse({ ok: true });
     return;
   }
 
   if (message.type === 'clear-highlights') {
-    clearHighlights();
+    clearHighlightsContrast();
     sendResponse({ ok: true });
   }
 });
 
-function highlightTargets(selectors) {
-  clearHighlights();
+function highlightTargetsContrast(selectors) {
+  clearHighlightsContrast();
   if (!Array.isArray(selectors) || selectors.length === 0) {
     return;
   }
-  ensureHighlightStyle();
+  ensureHighlightStyleContrast();
   let scrolled = false;
   selectors.forEach((selector) => {
     try {
       document.querySelectorAll(selector).forEach((node) => {
-        applyHighlight(node);
+        applyHighlightContrast(node);
         if (!scrolled) {
           console.log('[Axe Extension] Scrolling to node:', node);
           node.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' });
@@ -61,7 +61,7 @@ function highlightTargets(selectors) {
   });
 }
 
-function applyHighlight(node) {
+function applyHighlightContrast(node) {
   if (!node) return;
   if (!node.__axePrevStyles) {
     node.__axePrevStyles = {
@@ -81,7 +81,7 @@ function applyHighlight(node) {
   node.style.zIndex = '99999';
 }
 
-function clearHighlights() {
+function clearHighlightsContrast() {
   document.querySelectorAll('.' + HIGHLIGHT_CLASS).forEach((node) => {
     node.classList.remove(HIGHLIGHT_CLASS);
     if (node.__axePrevStyles) {
@@ -101,7 +101,7 @@ function clearHighlights() {
   }
 }
 
-function ensureHighlightStyle() {
+function ensureHighlightStyleContrast() {
   if (document.getElementById(HIGHLIGHT_STYLE_ID)) {
     return;
   }

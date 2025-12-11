@@ -61,7 +61,7 @@ const Dashboard = ({ results, isScanning, error, runScan, highlightNode }) => {
 
     const handleHighlight = (item) => {
         if (!item?.selectors?.length) return;
-        highlightNode(item.selectors);
+        highlightTargetsContrast(item.selectors);
     };
 
     const handleDownloadReport = () => {

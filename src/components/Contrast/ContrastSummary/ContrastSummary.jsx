@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styles from '../Contrast.module.css';
 import ContrastChecker from '../ContrastChecker/ContrastChecker';
 
-const ContrastSummary = ({ violations = [], passes = [], highlightNode, clearHighlights }) => {
+const ContrastSummary = ({ violations = [], passes = [], highlightTargetsContrast, clearHighlightsContrast }) => {
     const [expandedIndex, setExpandedIndex] = useState(null);
     const [filter, setFilter] = useState('all'); // 'all', 'aa', 'aaa'
 
@@ -99,13 +99,13 @@ const ContrastSummary = ({ violations = [], passes = [], highlightNode, clearHig
         if (newExpandedIndex !== null) {
             // Expanded a row
             const pair = allPairs[newExpandedIndex];
-            if (pair && pair.target && highlightNode) {
-                highlightNode(pair.target);
+            if (pair && pair.target && highlightTargetsContrast) {
+                highlightTargetsContrast(pair.target);
             }
         } else {
             // Collapsed only -> clear
-            if (clearHighlights) {
-                clearHighlights();
+            if (clearHighlightsContrast) {
+                clearHighlightsContrast();
             }
         }
     };

@@ -23,7 +23,7 @@ const Content = ({ activeTab, axeRunnerData }) => {
     case 'details':
       return <Dashboard {...axeRunnerData} />;
     case 'contrast':
-      return <ContrastSection results={axeRunnerData.results} highlightNode={axeRunnerData.highlightNode} clearHighlights={axeRunnerData.clearHighlights} />;
+      return <ContrastSection results={axeRunnerData.results} highlightTargetsContrast={axeRunnerData.highlightTargetsContrast} clearHighlightsContrast={axeRunnerData.clearHighlightsContrast} />;
     case 'order':
       return <Placeholder message="Order View (Coming Soon)" />;
     case 'structure':

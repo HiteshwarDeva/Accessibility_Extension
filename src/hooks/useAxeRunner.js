@@ -24,11 +24,11 @@ export const useAxeRunner = () => {
         });
     }, []);
 
-    const highlightNode = useCallback((selectors) => {
+    const highlightTargetsContrast = useCallback((selectors) => {
         sendMessageToInspectedTab({ type: 'highlight-nodes', selectors: selectors || [] }, () => { });
     }, []);
 
-    const clearHighlights = useCallback(() => {
+    const clearHighlightsContrast = useCallback(() => {
         sendMessageToInspectedTab({ type: 'clear-highlights' }, () => { });
     }, []);
 
@@ -37,8 +37,8 @@ export const useAxeRunner = () => {
         isScanning,
         error,
         runScan,
-        highlightNode,
-        clearHighlights
+        highlightTargetsContrast,
+        clearHighlightsContrast
     };
 };
 
