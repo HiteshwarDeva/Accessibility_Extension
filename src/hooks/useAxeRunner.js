@@ -25,7 +25,7 @@ export const useAxeRunner = () => {
     }, []);
 
     const highlightTargetsContrast = useCallback((selectors) => {
-        sendMessageToInspectedTab({ type: 'highlight-nodes', selectors: selectors || [] }, () => { });
+        sendMessageToInspectedTab({ type: 'highlight-nodes-contrast', selectors: selectors || [] }, () => { });
     }, []);
 
     const clearHighlightsContrast = useCallback(() => {
