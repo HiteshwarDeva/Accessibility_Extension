@@ -4,6 +4,7 @@ import Dashboard from './components/Dashboard/Dashboard';
 import ContrastSection from './components/Contrast/ContrastSection';
 import { AccessibilityProvider } from './context/AccessibilityContext';
 import TabOrderSection from './components/TabOrder/TabOrderSection';
+import StructurePanel from './components/Structure/StructurePanel';
 
 function App() {
   return (
@@ -29,7 +30,7 @@ const Content = ({ activeTab }) => {
     case 'order':
       return <TabOrderSection />;
     case 'structure':
-      return <Placeholder message="Structure View (Coming Soon)" />;
+      return <StructurePanel />;
     default:
       return <Dashboard />;
   }

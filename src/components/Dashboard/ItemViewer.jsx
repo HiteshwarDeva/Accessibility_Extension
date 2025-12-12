@@ -74,9 +74,9 @@ const ItemViewer = ({ item, index, total, onPrev, onNext, onHighlight, highlight
                     {index + 1} of {total}
                 </span>
                 <div className={styles['item-actions']}>
-                    <button 
-                        className={`${styles['highlight-btn']} ${isHighlighted ? styles.active : ''}`} 
-                        type="button" 
+                    <button
+                        className={`${styles['highlight-btn']} ${isHighlighted ? styles.active : ''}`}
+                        type="button"
                         onClick={onHighlight}
                         aria-pressed={isHighlighted}
                     >

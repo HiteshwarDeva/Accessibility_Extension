@@ -1,19 +1,21 @@
 import React, { createContext, useContext } from 'react';
 import { useAxeRunner } from '../hooks/useAxeRunner';
 import { useTabOrder } from '../hooks/useTabOrder';
+import { useStructure } from '../hooks/useStructure';
 
 const AccessibilityContext = createContext(null);
 
 /**
- * Unified context provider that combines both Axe and Tab Order functionality
+ * Unified context provider that combines Axe, Tab Order, and Structure functionality
  * This provides a single source of truth for all accessibility testing features
  */
 export const AccessibilityProvider = ({ children }) => {
-    // Get data from both hooks
+    // Get data from all hooks
     const axeData = useAxeRunner();
     const tabOrderData = useTabOrder();
+    const structureData = useStructure();
 
-    // Combine both into a single context value
+    // Combine all into a single context value
     const contextValue = {
         // Axe runner data (for Details and Contrast sections)
         axe: {
@@ -37,6 +39,15 @@ export const AccessibilityProvider = ({ children }) => {
             showOverlay: tabOrderData.showOverlay,
             hideOverlay: tabOrderData.hideOverlay,
             highlightElement: tabOrderData.highlightElement
+        },
+        // Structure data (for Structure section)
+        structure: {
+            structure: structureData.structure,
+            isLoadingStructure: structureData.isLoadingStructure,
+            structureError: structureData.structureError,
+            runStructureScan: structureData.runStructureScan,
+            showStructureBadges: structureData.showStructureBadges,
+            scrollToElement: structureData.scrollToElement
         }
     };
 

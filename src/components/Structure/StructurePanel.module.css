@@ -1,0 +1,123 @@
+.container {
+    padding: 16px;
+    background-color: #ffffff;
+    /* Light beige background */
+    height: 100%;
+    overflow-y: auto;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+}
+
+.title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 12px;
+    color: #2c3e50;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 8px;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.item {
+    display: flex;
+    align-items: flex-start;
+    /* Align top for multi-line content */
+    padding: 6px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.item:hover {
+    background-color: #e8f0fe;
+}
+
+/* Indentation levels */
+.indent0 {
+    margin-left: 0px;
+}
+
+.indent1 {
+    margin-left: 16px;
+}
+
+.indent2 {
+    margin-left: 32px;
+}
+
+.indent3 {
+    margin-left: 48px;
+}
+
+.indent4 {
+    margin-left: 64px;
+}
+
+.iconWrapper {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+
+}
+
+/* Icon specific styles */
+.iconHeader {
+    background-color: #1a4f8b;
+    color: white;
+}
+
+.iconNav {
+    background-color: #27ae60;
+    color: white;
+}
+
+.iconH1 {
+    background-color: #1a4f8b;
+    color: white;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 24px;
+}
+
+.label {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.subLabel {
+    font-size: 11px;
+    color: #666;
+    margin-top: 2px;
+}
+
+.alerts {
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.alertItem {
+    font-size: 11px;
+    color: #d32f2f;
+    background-color: #ffebee;
+    padding: 2px 4px;
+    border-radius: 2px;
+    display: inline-block;
+}
