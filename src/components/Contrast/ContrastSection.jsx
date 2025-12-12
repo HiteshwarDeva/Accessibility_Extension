@@ -1,10 +1,11 @@
 import React from 'react';
 import styles from './Contrast.module.css';
 import ContrastSummary from './ContrastSummary/ContrastSummary';
-import { useRunner } from '../../context/AxeRunnerContext';
+import { useAccessibility } from '../../context/AccessibilityContext';
 
 const ContrastSection = () => {
-    const { results, highlightTargetsContrast, clearHighlightsContrast } = useRunner();
+    const { axe } = useAccessibility();
+    const { results, highlightTargetsContrast, clearHighlightsContrast } = axe;
     console.log(results, 'ContrastSection')
     return (
         <div>

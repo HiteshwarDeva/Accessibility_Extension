@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import styles from './Dashboard.module.css';
 import DetailsSection from './DetailsSection';
 import Toast from './Toast';
-import { useRunner } from '../../context/AxeRunnerContext';
+import { useAccessibility } from '../../context/AccessibilityContext';
 
 const buildSummary = (results, bestPracticesRuleCount = 0, bestPracticesNodeCount = 0, impacts = {}) => {
     const passed = results?.passes?.length || 0;
@@ -56,7 +56,8 @@ const formatCategories = (entries, type) =>
     });
 
 const Dashboard = () => {
-    const { results, isScanning, error, runScan, toggleHighlight, clearHighlights } = useRunner();
+    const { axe } = useAccessibility();
+    const { results, isScanning, error, runScan, toggleHighlight, clearHighlights } = axe;
     console.log(results, 'Details')
     const hasResults = Boolean(results);
     const [toastMessage, setToastMessage] = useState(null);
@@ -171,7 +172,6 @@ const Dashboard = () => {
                     <p>Running accessibility scan...</p>
                 </div>
             )}
-
 
 
             {hasResults && (
