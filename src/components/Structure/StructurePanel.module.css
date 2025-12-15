@@ -102,3 +102,35 @@
     border-radius: 2px;
     display: inline-block;
 }
+
+/* Button styles from TabOrder - Standardized */
+.overlayBtn {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px; /* Slightly smaller for Structure/Contrast panels if needed, but user asked for "similar size". TabOrder uses 10px 18px. Let's match it or be slightly compact. */
+    padding: 10px 18px; 
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1; /* Fix vertical alignment */
+}
+
+.overlayBtn:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.overlayBtnActive {
+    background: #16a34a;
+}
+
+.overlayBtnActive:hover {
+    background: #15803d;
+}

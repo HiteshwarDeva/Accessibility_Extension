@@ -288,11 +288,11 @@ function applyHighlight(element) {
   element.classList.add(HIGHLIGHT_CLASS);
 
   // 🔥 Best universal highlight: Yellow outline + soft glow
-  element.style.outline = '3px solid #FFD700'; // gold yellow
+  element.style.outline = '3px solid #9D00FF'; // Purple
   element.style.outlineOffset = '4px';
   element.style.boxShadow =
-    '0 0 0 3px rgba(255, 215, 0, 0.4), ' +    // inner glow
-    '0 0 12px rgba(255, 215, 0, 0.8)';       // outer glow
+    '0 0 0 3px rgba(157, 0, 255, 0.4), ' +    // inner glow
+    '0 0 12px rgba(157, 0, 255, 0.8)';       // outer glow
 
   // Prevent overlapping styling issues
   element.style.position = 'relative';
@@ -413,11 +413,11 @@ function applyHighlightContrast(node) {
     };
   }
   node.classList.add(HIGHLIGHT_CLASS);
-  node.style.outline = '3px solid #39FF14';
+  node.style.outline = '3px solid #9D00FF';
   node.style.outlineOffset = '4px';
   node.style.boxShadow =
-    '0 0 0 3px rgba(57, 255, 20, 0.45), ' + // inner glow 
-    '0 0 12px rgba(57, 255, 20, 0.85)'; // outer glow;
+    '0 0 0 3px rgba(157, 0, 255, 0.45), ' + // inner glow 
+    '0 0 12px rgba(157, 0, 255, 0.85)'; // outer glow;
 
   node.style.position = 'relative';
   node.style.zIndex = '99999';
@@ -510,10 +510,10 @@ function ensureHighlightStyle() {
     }
     @keyframes __axe_pulse {
       0%, 100% {
-        box-shadow: 0 0 0 3px rgba(0, 255, 0, 0.3), 0 0 20px rgba(0, 255, 0, 0.5);
+        box-shadow: 0 0 0 3px rgba(157, 0, 255, 0.3), 0 0 20px rgba(157, 0, 255, 0.5);
       }
       50% {
-        box-shadow: 0 0 0 3px rgba(0, 255, 0, 0.5), 0 0 30px rgba(0, 255, 0, 0.7);
+        box-shadow: 0 0 0 3px rgba(157, 0, 255, 0.5), 0 0 30px rgba(157, 0, 255, 0.7);
       }
     }
   `;
@@ -1141,11 +1141,11 @@ function blinkElementBoundingBox(element) {
   boundingBox.style.top = `${rect.top + window.scrollY - 4}px`;
   boundingBox.style.width = `${rect.width + 8}px`;
   boundingBox.style.height = `${rect.height + 8}px`;
-  boundingBox.style.border = '3px solid #fbbf24';
+  boundingBox.style.border = '3px solid #9D00FF';
   boundingBox.style.borderRadius = '4px';
   boundingBox.style.pointerEvents = 'none';
   boundingBox.style.zIndex = '2147483647';
-  boundingBox.style.boxShadow = '0 0 0 3px rgba(251, 191, 36, 0.3)';
+  boundingBox.style.boxShadow = '0 0 0 3px rgba(157, 0, 255, 0.3)';
 
   document.body.appendChild(boundingBox);
 
@@ -1244,10 +1244,10 @@ function ensureHighlightStyleContrast() {
     }
     @keyframes __axe_pulse {
       0%, 100% {
-        box-shadow: 0 0 0 3px rgba(0, 255, 0, 0.3), 0 0 20px rgba(0, 255, 0, 0.5);
+        box-shadow: 0 0 0 3px rgba(157, 0, 255, 0.3), 0 0 20px rgba(157, 0, 255, 0.5);
       }
       50% {
-        box-shadow: 0 0 0 3px rgba(0, 255, 0, 0.5), 0 0 30px rgba(0, 255, 0, 0.7);
+        box-shadow: 0 0 0 3px rgba(157, 0, 255, 0.5), 0 0 30px rgba(157, 0, 255, 0.7);
       }
     }
   `;
@@ -1527,19 +1527,29 @@ function getBadgeInfo(node) {
 function getStructure(options = {}) {
   const MAX_ITEMS = typeof options.maxItems === 'number' ? options.maxItems : 10000;
 
+  /* 
+     STRICT FILTERING BASED ON USER REQUEST:
+     h1-h6, ol, ul, dl, header/banner, nav/navigation, search, main, aside/complementary,
+     footer/contentinfo, region, table, caption, th, iframe, form, fieldset, legend, label,
+     aria-label, aria-labelledby, aria-describedby, aria-region, alert, live, menu, menubar,
+     button, aria-expanded, aria-haspopup, aria-tabindex (tabindex), aria-hidden.
+  */
+
   const STRUCTURAL_TAGS = new Set([
     'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-    'header', 'nav', 'main', 'footer', 'aside',
-    'section', 'article',
-    'ul', 'ol', 'li', 'dl', 'dt', 'dd',
+    'ol', 'ul', 'dl',
+    'header', 'nav', 'main', 'aside', 'footer',
     'table', 'caption', 'th',
-    'form', 'fieldset', 'legend', 'label', 'iframe', 'a',
-    'input', 'select', 'textarea', 'audio', 'video', 'object', 'embed', 'applet', 'noscript'
+    'iframe', 'form', 'fieldset', 'legend', 'label', 'button'
   ]);
+
   const STRUCTURAL_ROLES = new Set([
-    'banner', 'main', 'navigation', 'contentinfo', 'complementary', 'search', 'form', 'region', 'alert', 'application',
-    'menu', 'menubar', 'button'
+    'banner', 'navigation', 'search', 'main', 'complementary', 'contentinfo', 'region',
+    'form', 'button', 'menu', 'menubar', 'alert', 'application' // Application often has structure
   ]);
+
+  // Roles that are valid but handled via attributes or specific checks:
+  // - aria-region, alert, live (handled by attribute checks or specific role)
 
   function accessibleName(el) {
     if (!el || el.nodeType !== 1) return '';
@@ -1618,8 +1628,6 @@ function getStructure(options = {}) {
     return '/' + parts.join('/');
   }
 
-
-
   function scanDocument(rootDoc, frameInfo = null) {
     const results = [];
     let domIndex = 0;
@@ -1636,33 +1644,63 @@ function getStructure(options = {}) {
         const tag = node.tagName.toLowerCase();
         const role = (node.getAttribute && node.getAttribute('role')) ? node.getAttribute('role').toLowerCase() : null;
 
-        const hasAriaLabel = node.hasAttribute('aria-label') || node.hasAttribute('aria-labelledby');
+        const hasAriaLabel = node.hasAttribute('aria-label');
+        const hasAriaLabelledBy = node.hasAttribute('aria-labelledby');
         const hasAriaDescribedBy = node.hasAttribute('aria-describedby');
         const hasAriaLive = node.hasAttribute('aria-live');
         const hasAriaExpanded = node.hasAttribute('aria-expanded');
         const hasAriaHasPopup = node.hasAttribute('aria-haspopup');
         const hasAriaHidden = node.hasAttribute('aria-hidden');
-        const hasTabIndex = node.hasAttribute('tabindex');
-        const isTh = tag === 'th';
+        const hasTabIndex = node.hasAttribute('tabindex'); // Request: "ARIA/tabindex"
 
-        const isStructuralTag = STRUCTURAL_TAGS.has(tag);
-        const isStructuralRole = role && STRUCTURAL_ROLES.has(role);
+        // Strict inclusion checks
+        const includeByTag = STRUCTURAL_TAGS.has(tag);
+        const includeByRole = role && STRUCTURAL_ROLES.has(role);
 
-        let name = '';
-        // Always compute name for checks
-        name = accessibleName(node);
+        // Specific attribute triggers requested by user
+        const includeByAttr =
+          hasAriaLabel ||
+          hasAriaLabelledBy ||
+          hasAriaDescribedBy ||
+          hasAriaLive ||
+          hasAriaExpanded ||
+          hasAriaHasPopup ||
+          hasAriaHidden ||
+          hasTabIndex;
 
+        // Exclusions:
+        // Exclude links if they are inside a list item (as per original logic/assumption, keep for noise reduction?)
+        // User didn't strictly say "exclude links", but 'a' is NOT in the requested list unless it has ARIA/Role.
+        // Wait, 'a' is NOT in the user's provided list of tags!
+        // User list: h1-h6, ol, ul, dl, header, nav, search, main, aside, footer, region, table, caption, th, iframe, form, fieldset, legend, label, button.
+        // Links are NOT in the list explicitly unless they have attributes like aria-expanded or role="button".
+        // So I should NOT include 'a' tag by default unless it matches strictly.
 
+        // Note: 'a' was removed from STRUCTURAL_TAGS above. 
+        // So links will only appear if they have role="button" or aria attributes.
 
-        const includeByTag = isStructuralTag && !((tag === 'section' || tag === 'article') && !name);
-        const includeByRole = !!(isStructuralRole && !(role === 'region' && !name));
-        const includeByAttr = hasAriaLabel || hasAriaDescribedBy || hasAriaLive || hasAriaExpanded || hasAriaHasPopup || hasAriaHidden || hasTabIndex;
+        const isSpan = tag === 'span' || tag === 'div';
+        // Spans/Divs only included if they have role or attributes.
 
-        // Exclude links if they are inside a list item (as per user request)
-        const isLinkInList = tag === 'a' && node.closest('li');
-        const isSpan = tag === 'span';
+        // Fix for User Issue: "why am I getting anchor tags in structure ?"
+        // Anchors ('a') are NOT in the allowable list unless they are acting as structural/controls (e.g. role="button").
+        // Simple 'aria-label' or 'tabindex' on a link should NOT include it if the user wants "only these elements".
+        const isAnchor = tag === 'a';
+        let shouldInclude = false;
 
-        if (!isSpan && !isLinkInList && (includeByTag || includeByRole || includeByAttr)) {
+        if (isAnchor) {
+          // Only include anchors if they have a structural role (button, menuitem, etc.) OR strictly structural attributes
+          // User requested: "role='button'", "aria-haspopup", "aria-expanded".
+          // They did NOT request "aria-label" on links to show up.
+          if (includeByRole) shouldInclude = true; // Use includeByRole to catch role="button", "menuitem", etc.
+          else if (hasAriaHasPopup || hasAriaExpanded) shouldInclude = true;
+          // Note: We deliberately exclude 'includeByAttr' for anchors to avoid noise from aria-label/tabindex on standard links.
+        } else {
+          // For non-anchors, use standard logic
+          shouldInclude = (!isSpan && (includeByTag || includeByRole || includeByAttr)) || (isSpan && (includeByRole || includeByAttr));
+        }
+
+        if (shouldInclude) {
           let type = 'other';
           if (tag.startsWith('h') && tag.length === 2 && /^[h][1-6]$/.test(tag)) type = 'heading';
           else if (tag === 'table') type = 'table';

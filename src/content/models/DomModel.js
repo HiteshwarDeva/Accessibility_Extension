@@ -322,18 +322,25 @@ export class DomModel {
     static getStructure(options = {}) {
         const MAX_ITEMS = typeof options.maxItems === 'number' ? options.maxItems : 10000;
 
+        /* 
+           STRICT FILTERING BASED ON USER REQUEST:
+           h1-h6, ol, ul, dl, header/banner, nav/navigation, search, main, aside/complementary,
+           footer/contentinfo, region, table, caption, th, iframe, form, fieldset, legend, label,
+           aria-label, aria-labelledby, aria-describedby, aria-region, alert, live, menu, menubar,
+           button, aria-expanded, aria-haspopup, aria-tabindex (tabindex), aria-hidden.
+        */
+
         const STRUCTURAL_TAGS = new Set([
             'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-            'header', 'nav', 'main', 'footer', 'aside',
-            'section', 'article',
-            'ul', 'ol', 'li', 'dl', 'dt', 'dd',
+            'ol', 'ul', 'dl',
+            'header', 'nav', 'main', 'aside', 'footer',
             'table', 'caption', 'th',
-            'form', 'fieldset', 'legend', 'label', 'iframe', 'a',
-            'input', 'select', 'textarea', 'audio', 'video', 'object', 'embed', 'applet', 'noscript'
+            'iframe', 'form', 'fieldset', 'legend', 'label', 'button'
         ]);
+
         const STRUCTURAL_ROLES = new Set([
-            'banner', 'main', 'navigation', 'contentinfo', 'complementary', 'search', 'form', 'region', 'alert', 'application',
-            'menu', 'menubar', 'button'
+            'banner', 'navigation', 'search', 'main', 'complementary', 'contentinfo', 'region',
+            'form', 'button', 'menu', 'menubar', 'alert', 'application'
         ]);
 
         function accessibleName(el) {
@@ -367,18 +374,15 @@ export class DomModel {
             if (el.title) return String(el.title).trim();
 
             // 5. Visible Text (Conditional)
-            // Only for specific content-heavy tags: headings, nav, lists, footer, links, labels, table parts
             const CONTENT_TAGS = new Set([
                 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
                 'nav', 'footer',
                 'ul', 'ol', 'li', 'dl', 'dt', 'dd',
-                'a',
                 'label', 'legend', 'caption', 'th', 'button'
             ]);
 
             if (CONTENT_TAGS.has(tag)) {
                 let txt = (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim();
-                // Truncate long text
                 if (txt.length > 50) txt = txt.substring(0, 50) + '...';
                 if (txt) return txt;
             }
@@ -440,18 +444,30 @@ export class DomModel {
                     const isStructuralRole = role && STRUCTURAL_ROLES.has(role);
 
                     let name = '';
-                    // Always compute name for checks
                     name = accessibleName(node);
 
-                    const includeByTag = isStructuralTag && !((tag === 'section' || tag === 'article') && !name);
-                    const includeByRole = !!(isStructuralRole && !(role === 'region' && !name));
+                    // Strict inclusion checks for tags and roles
+                    const includeByTag = isStructuralTag; // Removed section/article logic as they are not in STRUCTURAL_TAGS anymore
+                    const includeByRole = isStructuralRole;
+
                     const includeByAttr = hasAriaLabel || hasAriaDescribedBy || hasAriaLive || hasAriaExpanded || hasAriaHasPopup || hasAriaHidden || hasTabIndex;
 
-                    // Exclude links if they are inside a list item
-                    const isLinkInList = tag === 'a' && node.closest('li');
-                    const isSpan = tag === 'span';
+                    const isSpan = tag === 'span' || tag === 'div';
 
-                    if (!isSpan && !isLinkInList && (includeByTag || includeByRole || includeByAttr)) {
+                    // Fix for User Issue: "why am I getting anchor tags in structure ?"
+                    const isAnchor = tag === 'a';
+                    let shouldInclude = false;
+
+                    if (isAnchor) {
+                        // Only include anchors if they have a structural role (button, menuitem, etc.) OR strictly structural attributes
+                        if (includeByRole) shouldInclude = true;
+                        else if (hasAriaHasPopup || hasAriaExpanded) shouldInclude = true;
+                    } else {
+                        // For non-anchors, use standard logic
+                        shouldInclude = (!isSpan && (includeByTag || includeByRole || includeByAttr)) || (isSpan && (includeByRole || includeByAttr));
+                    }
+
+                    if (shouldInclude) {
                         let type = 'other';
                         if (tag.startsWith('h') && tag.length === 2 && /^[h][1-6]$/.test(tag)) type = 'heading';
                         else if (tag === 'table') type = 'table';

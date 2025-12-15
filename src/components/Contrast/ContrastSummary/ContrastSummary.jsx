@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import styles from '../Contrast.module.css';
 import ContrastChecker from '../ContrastChecker/ContrastChecker';
 
-const ContrastSummary = ({ violations = [], passes = [], highlightTargetsContrast, clearHighlightsContrast }) => {
+const ContrastSummary = ({ violations = [], passes = [], highlightTargetsContrast, clearHighlightsContrast, onReRun }) => {
     const [expandedIndex, setExpandedIndex] = useState(null);
     const [filter, setFilter] = useState('all'); // 'all', 'aa', 'aaa'
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
 
     // Helper to extract color data from nodes
     const extractColorData = (list, isViolation) => {
@@ -92,13 +94,35 @@ const ContrastSummary = ({ violations = [], passes = [], highlightTargetsContras
         };
     };
 
+    // Pagination Logic
+    const totalPages = Math.ceil(allPairs.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const currentPairs = allPairs.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+    const goToPage = (page) => {
+        if (page >= 1 && page <= totalPages) {
+            setCurrentPage(page);
+            setExpandedIndex(null); // Collapse any open items when changing pages
+        }
+    };
+
+    // Reset pagination when filter changes
+    React.useEffect(() => {
+        setCurrentPage(1);
+        setExpandedIndex(null);
+    }, [filter]);
+
+
     const handleRowClick = (index) => {
+        // Adjust index for pagination to find the correct item in global list if needed,
+        // but since we render currentPairs, the index passed here is reliable for current view.
+        // Actually, expandedIndex needs to track the local index within currentPairs to toggle display correctly.
         const newExpandedIndex = expandedIndex === index ? null : index;
         setExpandedIndex(newExpandedIndex);
 
         if (newExpandedIndex !== null) {
             // Expanded a row
-            const pair = allPairs[newExpandedIndex];
+            const pair = currentPairs[newExpandedIndex];
             if (pair && pair.target && highlightTargetsContrast) {
                 highlightTargetsContrast(pair.target);
             }
@@ -113,7 +137,15 @@ const ContrastSummary = ({ violations = [], passes = [], highlightTargetsContras
     return (
         <div className={styles.contrastContainer}>
             <div className={styles.checkerSection}>
-                <h3>Contrast Summary</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                    <h3 style={{ margin: 0 }}>Contrast Summary</h3>
+                    <button
+                        onClick={onReRun}
+                        className={styles.overlayBtn}
+                    >
+                        🔄 Re-run Scan
+                    </button>
+                </div>
                 <p className={styles.description}>WCAG compliance statistics for tested pairs</p>
 
                 <div style={{ display: 'flex', justifyContent: 'space-around', margin: '20px 0' }}>
@@ -143,7 +175,7 @@ const ContrastSummary = ({ violations = [], passes = [], highlightTargetsContras
                     <div>
                         <h4>Tested Color Pairs</h4>
                         <p style={{ color: '#666', fontSize: '0.9em', margin: 0 }}>
-                            All detected foreground and background combinations
+                            Showing {Math.min(startIndex + 1, allPairs.length)} - {Math.min(startIndex + currentPairs.length, allPairs.length)} of {allPairs.length}
                         </p>
                     </div>
                     <div style={{ display: 'flex', gap: '5px' }}>
@@ -187,8 +219,8 @@ const ContrastSummary = ({ violations = [], passes = [], highlightTargetsContras
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {allPairs.length > 0 ? (
-                        allPairs.map((pair, index) => (
+                    {currentPairs.length > 0 ? (
+                        currentPairs.map((pair, index) => (
                             <ColorPairRow
                                 key={index}
                                 {...pair}
@@ -197,9 +229,53 @@ const ContrastSummary = ({ violations = [], passes = [], highlightTargetsContras
                             />
                         ))
                     ) : (
-                        <p style={{ color: '#666', fontStyle: 'italic' }}>No color contrast data available.</p>
+                        <p style={{ color: '#666', fontStyle: 'italic' }}>No color contrast data available for this filter.</p>
                     )}
                 </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '15px',
+                        marginTop: '20px',
+                        padding: '10px'
+                    }}>
+                        <button
+                            onClick={() => goToPage(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            style={{
+                                padding: '8px 16px',
+                                border: '1px solid #ddd',
+                                borderRadius: '4px',
+                                background: currentPage === 1 ? '#f5f5f5' : 'white',
+                                cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                                color: currentPage === 1 ? '#999' : '#333'
+                            }}
+                        >
+                            Previous
+                        </button>
+                        <span style={{ color: '#666', fontSize: '0.9em' }}>
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <button
+                            onClick={() => goToPage(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            style={{
+                                padding: '8px 16px',
+                                border: '1px solid #ddd',
+                                borderRadius: '4px',
+                                background: currentPage === totalPages ? '#f5f5f5' : 'white',
+                                cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                                color: currentPage === totalPages ? '#999' : '#333'
+                            }}
+                        >
+                            Next
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

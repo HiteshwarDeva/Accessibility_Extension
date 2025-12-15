@@ -5,7 +5,7 @@ import { useAccessibility } from '../../context/AccessibilityContext';
 
 const ContrastSection = () => {
     const { axe } = useAccessibility();
-    const { results, highlightTargetsContrast, clearHighlightsContrast } = axe;
+    const { results, highlightTargetsContrast, clearHighlightsContrast, runScan } = axe;
     console.log(results, 'ContrastSection')
     return (
         <div>
@@ -14,6 +14,7 @@ const ContrastSection = () => {
                 passes={results?.passes}
                 highlightTargetsContrast={highlightTargetsContrast}
                 clearHighlightsContrast={clearHighlightsContrast}
+                onReRun={runScan}
             />
         </div>
     )

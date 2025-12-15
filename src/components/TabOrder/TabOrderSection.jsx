@@ -66,13 +66,27 @@ const TabOrderSection = () => {
                 <>
                     <div className={styles.headerSection}>
                         <h2 className={styles.sectionTitle}>Order</h2>
-                        <button
-                            className={`${styles.overlayBtn} ${overlayVisible ? styles.overlayBtnActive : ''}`}
-                            type="button"
-                            onClick={handleToggleOverlay}
-                        >
-                            {overlayVisible ? '👁️ Hide Overlay' : '👁️ Show Overlay'}
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                                className={styles.overlayBtn}
+                                type="button"
+                                onClick={runTabOrderScan}
+                                style={{
+                                    backgroundColor: 'transparent',
+                                    border: '1px solid #ccc',
+                                    color: '#333'
+                                }}
+                            >
+                                🔄 Re-run Scan
+                            </button>
+                            <button
+                                className={`${styles.overlayBtn} ${overlayVisible ? styles.overlayBtnActive : ''}`}
+                                type="button"
+                                onClick={handleToggleOverlay}
+                            >
+                                {overlayVisible ? '👁️ Hide Overlay' : '👁️ Show Overlay'}
+                            </button>
+                        </div>
                     </div>
                     <TabOrderInfo />
                     <div className={styles.orderList}>

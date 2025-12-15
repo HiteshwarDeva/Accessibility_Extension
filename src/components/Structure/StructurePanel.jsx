@@ -3,7 +3,7 @@ import styles from './StructurePanel.module.css';
 import { useAccessibility } from '../../context/AccessibilityContext';
 
 const StructurePanel = () => {
-    const { structure: structureContext } = useAccessibility();
+    const { structure: structureContext, axe } = useAccessibility();
     const {
         structure,
         isLoadingStructure,
@@ -12,6 +12,9 @@ const StructurePanel = () => {
         showStructureBadges,
         scrollToElement
     } = structureContext;
+    const { clearHighlights } = axe;
+
+    const [isOverlayVisible, setIsOverlayVisible] = React.useState(false);
 
     useEffect(() => {
         // Run structure scan when component mounts
@@ -19,16 +22,29 @@ const StructurePanel = () => {
 
         // Cleanup: Clear highlights when panel unmounts
         return () => {
-            // Clear highlights handled by context
+            clearHighlights();
         };
-    }, [runStructureScan]);
+    }, [runStructureScan, clearHighlights]);
 
     // Show badges after structure is loaded
     useEffect(() => {
         if (structure && structure.length > 0) {
-            showStructureBadges();
+            // Default to NOT showing badges automatically, let user toggle (requested "Add button")
+            // Or if user wants auto-show, we can uncomment:
+            // showStructureBadges();
+            // setIsOverlayVisible(true);
         }
     }, [structure, showStructureBadges]);
+
+    const toggleOverlay = () => {
+        if (isOverlayVisible) {
+            clearHighlights();
+            setIsOverlayVisible(false);
+        } else {
+            showStructureBadges();
+            setIsOverlayVisible(true);
+        }
+    };
 
     if (isLoadingStructure) return <div className={styles.container}>Loading structure...</div>;
     if (structureError) return <div className={styles.container}>Error: {structureError}</div>;
@@ -36,7 +52,23 @@ const StructurePanel = () => {
 
     return (
         <div className={styles.container}>
-            <div className={styles.title}>Structure</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div className={styles.title} style={{ marginBottom: 0, borderBottom: 'none' }}>Structure</div> {/* Remove border/margin from title wrapper for alignment */}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                        onClick={runStructureScan}
+                        className={styles.overlayBtn}
+                    >
+                        🔄 Re-run Scan
+                    </button>
+                    <button
+                        onClick={toggleOverlay}
+                        className={`${styles.overlayBtn} ${isOverlayVisible ? styles.overlayBtnActive : ''}`}
+                    >
+                        {isOverlayVisible ? '👁️ Hide Overlay' : '👁️ Show Overlay'}
+                    </button>
+                </div>
+            </div>
             <div className={styles.list}>
                 {structure.map((item, index) => (
                     <StructureItem key={index} item={item} scrollToElement={scrollToElement} />
