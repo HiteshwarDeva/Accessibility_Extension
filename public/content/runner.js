@@ -1627,7 +1627,7 @@ function getStructure(options = {}) {
     let shadowRootsSkipped = false;
     const seenShadowHosts = new Set();
 
-    function walk(node, inShadow = false) {
+    function walk(node, inShadow = false, level = 0) {
       if (!node || results.length >= MAX_ITEMS) {
         if (results.length >= MAX_ITEMS) truncated = true;
         return;
@@ -1701,6 +1701,7 @@ function getStructure(options = {}) {
             childrenCount: childrenCount,
             inShadow: !!inShadow,
             frame: frameInfo,
+            level: level, // Include hierarchy level
             attributes: {
               ariaLabel: node.getAttribute('aria-label'),
               ariaLabelledBy: node.getAttribute('aria-labelledby'),
@@ -1713,13 +1714,21 @@ function getStructure(options = {}) {
               scope: node.getAttribute('scope')
             }
           });
+
+          // If this node is structural, children should be next level
+          // Note: We only increment level if we actually added this node as structural
+          // AND we recurse. 
+          // For non-structural wrapper divs, we don't want to increment level?
+          // Actually, the user wants "indent with respect to its heading" (meaning parent structural element).
+          // So if we found a structural element, we increment level for its children scan.
+          level++;
         }
 
         try {
           if (node.shadowRoot) {
             seenShadowHosts.add(node);
             for (const ch of Array.from(node.shadowRoot.children)) {
-              walk(ch, true);
+              walk(ch, true, level);
               if (truncated) return;
             }
           } else if (typeof node.attachShadow === 'function' && node.shadowRoot === null) {
@@ -1733,8 +1742,15 @@ function getStructure(options = {}) {
             if (childDoc) {
               const iframeSrc = node.getAttribute('src') || null;
               const childFrameInfo = { src: iframeSrc, title: node.getAttribute('title') || null };
-              const childResults = scanDocument(childDoc, childFrameInfo);
+              const childResults = scanDocument(childDoc, childFrameInfo); // Recursive scan starts at level 0 relative to iframe? Or inherit? Inherit might be better but complexity. Let's restart 0 for now or pass level.
+              // Actually for iframe content, it's effectively a new document root, but logically nested.
+              // Let's keep it simple and not pass level to scanDocument for now, or just append.
+              // The original code merged results.
               for (const cr of childResults.structuralElements) {
+                // Adjust level for iframe content?
+                // For simplicity, let's leave iframe content levels as is (relative to their doc) or add current level.
+                // Let's add current level to make them appear nested.
+                cr.level = (cr.level || 0) + level;
                 results.push(cr);
               }
             }
@@ -1744,7 +1760,7 @@ function getStructure(options = {}) {
 
       if (node.children && node.children.length) {
         for (const child of Array.from(node.children)) {
-          walk(child, inShadow);
+          walk(child, inShadow, level); // Pass current level (which might have been incremented if node was structural)
           if (truncated) return;
         }
       }
@@ -1752,7 +1768,7 @@ function getStructure(options = {}) {
 
     try {
       const startRoot = rootDoc.body || rootDoc.documentElement;
-      if (startRoot) walk(startRoot, false);
+      if (startRoot) walk(startRoot, false, 0);
     } catch (e) { }
 
     return { structuralElements: results, truncated: truncated, shadowRootsSkipped: shadowRootsSkipped };
