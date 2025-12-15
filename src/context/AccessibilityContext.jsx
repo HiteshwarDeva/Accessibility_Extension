@@ -47,7 +47,8 @@ export const AccessibilityProvider = ({ children }) => {
             structureError: structureData.structureError,
             runStructureScan: structureData.runStructureScan,
             showStructureBadges: structureData.showStructureBadges,
-            scrollToElement: structureData.scrollToElement
+            scrollToElement: structureData.scrollToElement,
+            clearStructureBadges: structureData.clearStructureBadges
         }
     };
 

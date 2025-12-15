@@ -706,7 +706,6 @@ function getElementRole(element) {
   // Determine implicit role based on tag name
   const tagName = element.tagName.toLowerCase();
   const roleMap = {
-    'a': 'Link',
     'button': 'Button',
     'input': getInputRole(element),
     'select': 'Combobox',
@@ -1661,8 +1660,9 @@ function getStructure(options = {}) {
         // Exclude links if they are inside a list item (as per user request)
         const isLinkInList = tag === 'a' && node.closest('li');
         const isSpan = tag === 'span';
+        const isAnchor = tag === 'a';
 
-        if (!isSpan && !isLinkInList && (includeByTag || includeByRole || includeByAttr)) {
+        if (!isSpan && !isLinkInList && !isAnchor && (includeByTag || includeByRole || includeByAttr)) {
           let type = 'other';
           if (tag.startsWith('h') && tag.length === 2 && /^[h][1-6]$/.test(tag)) type = 'heading';
           else if (tag === 'table') type = 'table';
@@ -1814,3 +1814,10 @@ function getStructure(options = {}) {
 
 
 
+// Cleanup on tab switch
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    clearHighlights();
+    hideTabOrderOverlay();
+  }
+});

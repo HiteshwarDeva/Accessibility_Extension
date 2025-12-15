@@ -1,16 +1,19 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from './StructurePanel.module.css';
 import { useAccessibility } from '../../context/AccessibilityContext';
 
 const StructurePanel = () => {
     const { structure: structureContext } = useAccessibility();
+    const [isAllShown, setIsAllShown] = useState(true);
+
     const {
         structure,
         isLoadingStructure,
         structureError,
         runStructureScan,
         showStructureBadges,
-        scrollToElement
+        scrollToElement,
+        clearStructureBadges
     } = structureContext;
 
     useEffect(() => {
@@ -19,16 +22,33 @@ const StructurePanel = () => {
 
         // Cleanup: Clear highlights when panel unmounts
         return () => {
-            // Clear highlights handled by context
+            clearStructureBadges();
         };
-    }, [runStructureScan]);
+    }, [runStructureScan, clearStructureBadges]);
 
-    // Show badges after structure is loaded
+    // Auto-show badges if isAllShown is true and structure loads
     useEffect(() => {
-        if (structure && structure.length > 0) {
+        if (structure && structure.length > 0 && isAllShown) {
             showStructureBadges();
         }
-    }, [structure, showStructureBadges]);
+    }, [structure, showStructureBadges, isAllShown]);
+
+    const handleToggle = () => {
+        if (isAllShown) {
+            clearStructureBadges();
+            setIsAllShown(false);
+        } else {
+            showStructureBadges();
+            setIsAllShown(true);
+        }
+    };
+
+    const handleItemClick = (item) => {
+        if (item.path) {
+            scrollToElement(item.path);
+            setIsAllShown(false); // Single selection mode implies not "All Shown"
+        }
+    };
 
     if (isLoadingStructure) return <div className={styles.container}>Loading structure...</div>;
     if (structureError) return <div className={styles.container}>Error: {structureError}</div>;
@@ -36,17 +56,33 @@ const StructurePanel = () => {
 
     return (
         <div className={styles.container}>
-            <div className={styles.title}>Structure</div>
+            <div className={styles.headerRow} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <div className={styles.title} style={{ margin: 0 }}>Structure</div>
+                <button
+                    onClick={handleToggle}
+                    style={{
+                        padding: '4px 8px',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        backgroundColor: isAllShown ? '#555' : '#005a9c',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px'
+                    }}
+                >
+                    {isAllShown ? 'Hide All' : 'Show All'}
+                </button>
+            </div>
             <div className={styles.list}>
                 {structure.map((item, index) => (
-                    <StructureItem key={index} item={item} scrollToElement={scrollToElement} />
+                    <StructureItem key={index} item={item} onItemClick={handleItemClick} />
                 ))}
             </div>
         </div>
     );
 };
 
-const StructureItem = ({ item, scrollToElement }) => {
+const StructureItem = ({ item, onItemClick }) => {
     // Adapt to new fields: tag, name, type, attributes
     // Fallback to old fields if present
     const tagName = item.tag || item.tagName;
@@ -86,8 +122,8 @@ const StructureItem = ({ item, scrollToElement }) => {
     if (!displayLabel) displayLabel = `<${tagName}>`;
 
     const handleClick = () => {
-        if (item.path) {
-            scrollToElement(item.path);
+        if (onItemClick) {
+            onItemClick(item);
         }
     };
 

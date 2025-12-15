@@ -35,12 +35,17 @@ export const useStructure = () => {
         sendMessageToInspectedTab({ type: 'scroll-to-element', path }, () => { });
     }, []);
 
+    const clearStructureBadges = useCallback(() => {
+        sendMessageToInspectedTab({ type: 'clear-highlights' }, () => { });
+    }, []);
+
     return {
         structure,
         isLoadingStructure,
         structureError,
         runStructureScan,
         showStructureBadges,
-        scrollToElement
+        scrollToElement,
+        clearStructureBadges
     };
 };
