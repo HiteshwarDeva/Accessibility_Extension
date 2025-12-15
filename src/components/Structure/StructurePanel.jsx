@@ -96,14 +96,9 @@ const StructureItem = ({ item }) => {
         iconClass = styles.iconHeader;
     }
 
-    // Indentation: compute based on heading level or nesting if available
-    // For now, simple indentation for headings
-    let level = 0;
-    if (type === 'heading') {
-        level = parseInt(tagName.substring(1)) - 1;
-    }
-    // Indentation class
-    const indentClass = styles[`indent${Math.min(level, 4)}`];
+    // Indentation: use level from structure
+    const level = typeof item.level === 'number' ? item.level : 0;
+    const indentation = level * 16; // 16px per level
 
     // Construct label text including attributes if relevant
     let displayLabel = text;
@@ -123,10 +118,10 @@ const StructureItem = ({ item }) => {
 
     return (
         <div
-            className={`${styles.item} ${indentClass}`}
+            className={styles.item}
             title={JSON.stringify(attributes)}
             onClick={handleClick}
-            style={{ cursor: 'pointer' }}
+            style={{ cursor: 'pointer', marginLeft: `${indentation}px` }}
         >
             <div className={`${styles.iconWrapper} ${iconClass}`}>
                 {icon}

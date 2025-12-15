@@ -36,26 +36,7 @@
     background-color: #e8f0fe;
 }
 
-/* Indentation levels */
-.indent0 {
-    margin-left: 0px;
-}
-
-.indent1 {
-    margin-left: 16px;
-}
-
-.indent2 {
-    margin-left: 32px;
-}
-
-.indent3 {
-    margin-left: 48px;
-}
-
-.indent4 {
-    margin-left: 64px;
-}
+/* Indentation levels handled by inline styles now */
 
 .iconWrapper {
     width: 24px;
