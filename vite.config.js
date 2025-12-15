@@ -10,6 +10,15 @@ export default defineConfig({
     rollupOptions: {
       input: {
         panel: resolve(__dirname, 'index.html'),
+        content: resolve(__dirname, 'src/content/index.js'),
+      },
+      output: {
+        entryFileNames: (chunk) => {
+          if (chunk.name === 'content') {
+            return 'content.js';
+          }
+          return 'assets/[name]-[hash].js';
+        },
       },
     },
   },

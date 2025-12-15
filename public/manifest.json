@@ -3,13 +3,23 @@
   "name": "Accessibility Extension",
   "version": "1.0",
   "description": "DevTools panel that runs accessibility tests in the inspected page and shows results.",
-  "permissions": ["tabs", "scripting"],
+  "permissions": [
+    "tabs",
+    "scripting"
+  ],
   "devtools_page": "devtools.html",
-  "host_permissions": ["<all_urls>"],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["vendor/axe.min.js", "content/runner.js"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "vendor/axe.min.js",
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
   ]
