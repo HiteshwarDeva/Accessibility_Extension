@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import styles from './Dashboard.module.css';
 import DetailsSection from './DetailsSection';
+import HistoryPanel from './HistoryPanel';
+import DiffView from './DiffView';
 import Toast from './Toast';
 import { useAccessibility } from '../../context/AccessibilityContext';
 
@@ -55,14 +57,18 @@ const formatCategories = (entries, type) =>
         };
     });
 
-const Dashboard = () => {
-    const { axe } = useAccessibility();
+const Dashboard = ({ onTabChange }) => {
+    const { axe, history, tabOrder, structure } = useAccessibility();
     const { results, isScanning, error, runScan, toggleHighlight, clearHighlights } = axe;
+    const { loadScanData } = history;
+    const { setOrderData } = tabOrder;
+    const { setStructure } = structure;
     console.log(results, 'Details')
     const hasResults = Boolean(results);
     const [toastMessage, setToastMessage] = useState(null);
     const [highlightedItemId, setHighlightedItemId] = useState(null);
     const [showBestPractices, setShowBestPractices] = useState(false);
+    const [diffState, setDiffState] = useState(null);
 
     useEffect(() => {
         if (!results && !isScanning) {
@@ -165,6 +171,71 @@ const Dashboard = () => {
         URL.revokeObjectURL(url);
     };
 
+    const handleLoadScan = async (id) => {
+        try {
+            const scan = await loadScanData(id);
+            if (!scan) {
+                setToastMessage('Error: Scan data not found.');
+                return;
+            }
+
+            if (scan.type === 'tab-order') {
+                if (setOrderData) {
+                    setOrderData(scan.data);
+                    onTabChange && onTabChange('order');
+                    setToastMessage('Tab Order scan loaded from history.');
+                } else {
+                    setToastMessage('Error: Cannot load tab order data (setter missing).');
+                }
+            } else if (scan.type === 'structure') {
+                if (setStructure) {
+                    setStructure(scan.data);
+                    onTabChange && onTabChange('structure');
+                    setToastMessage('Structure scan loaded from history.');
+                } else {
+                    setToastMessage('Error: Cannot load structure data (setter missing).');
+                }
+            } else {
+                setToastMessage(`Unknown scan type: ${scan.type}`);
+            }
+        } catch (e) {
+            console.error(e);
+            setToastMessage('Failed to load scan.');
+        }
+    };
+
+    const handleDiffScan = async (id) => {
+        try {
+            const oldScan = await loadScanData(id);
+            if (!oldScan) {
+                setToastMessage('Error: Historical scan not found.');
+                return;
+            }
+
+            let newScan = null;
+            if (oldScan.type === 'tab-order') {
+                if (!tabOrder.orderData) {
+                    setToastMessage('Error: No current Tab Order scan to compare with. Please run a scan first.');
+                    return;
+                }
+                newScan = { type: 'tab-order', data: tabOrder.orderData };
+            } else if (oldScan.type === 'structure') {
+                if (!structure.structure) {
+                    setToastMessage('Error: No current Structure scan to compare with. Please run a scan first.');
+                    return;
+                }
+                newScan = { type: 'structure', data: structure.structure };
+            }
+
+            if (newScan) {
+                setDiffState({ oldScan, newScan });
+            }
+        } catch (e) {
+            console.error(e);
+            setToastMessage('Failed to prepare diff.');
+        }
+    };
+
     return (
         <div className={styles.dashboard}>
             {isScanning && (
@@ -187,6 +258,16 @@ const Dashboard = () => {
                     showBestPractices={showBestPractices}
                     setShowBestPractices={setShowBestPractices}
                 />
+            )}
+
+            {diffState ? (
+                <DiffView
+                    oldScan={diffState.oldScan}
+                    newScan={diffState.newScan}
+                    onClose={() => setDiffState(null)}
+                />
+            ) : (
+                <HistoryPanel onLoadScan={handleLoadScan} onDiffScan={handleDiffScan} />
             )}
 
             {error && <p className={styles.errorMessage}>{error}</p>}

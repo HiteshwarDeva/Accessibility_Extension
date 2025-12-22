@@ -19,7 +19,11 @@ export class ScanController {
     static getTabOrder(message, sendResponse) {
         try {
             const data = DomModel.getTabOrder();
-            sendResponse({ ok: true, data });
+            const metadata = {
+                url: window.location.href,
+                title: document.title
+            };
+            sendResponse({ ok: true, data, metadata });
         } catch (error) {
             sendResponse({ ok: false, error: error.message });
         }

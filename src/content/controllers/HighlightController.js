@@ -41,7 +41,7 @@ export class HighlightController {
 
     static handleShowTabOrderOverlay(message, sendResponse) {
         try {
-            OverlayView.showTabOrder();
+            OverlayView.showTabOrder(message.data);
             sendResponse({ ok: true });
         } catch (error) {
             sendResponse({ ok: false, error: error.message });
@@ -55,7 +55,7 @@ export class HighlightController {
 
     static handleHighlightTabOrderElement(message, sendResponse) {
         try {
-            OverlayView.highlightTabOrderElement(message.orderNumber);
+            OverlayView.highlightTabOrderElement(message.orderNumber, message.path);
             sendResponse({ ok: true });
         } catch (error) {
             sendResponse({ ok: false, error: error.message });
@@ -63,19 +63,20 @@ export class HighlightController {
     }
 
     static handleShowStructureBadges(message, sendResponse) {
-        // We need to get structure data first
-        // In runner.js it checked `lastStructureElements` or called getStructure()
-        // We can call DomModel.getStructure()
-        // Optimization: Store last structure? 
-        // For now, re-scan or use cache if DomModel had it. DomModel doesn't cache.
-        // Let's call DomModel.getStructure()
-        const structure = DomModel.getStructure();
+        // If data is provided (replay mode), use it. Otherwise scan current DOM.
+        let structuralElements = [];
+        if (message.data && Array.isArray(message.data)) {
+            structuralElements = message.data;
+        } else {
+            const structure = DomModel.getStructure();
+            structuralElements = structure.structuralElements || [];
+        }
 
         // Clear other highlights
         HighlightView.clearMainHighlight();
         OverlayView.ensureOverlayContainer();
 
-        structure.structuralElements.forEach(item => {
+        structuralElements.forEach(item => {
             const el = DomModel.resolvePath(item.path);
             if (el) {
                 OverlayView.createOverlay(el, item);

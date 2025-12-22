@@ -13,7 +13,10 @@ const Layout = ({ children }) => {
             <main className={styles.content}>
                 {React.Children.map(children, child => {
                     if (React.isValidElement(child)) {
-                        return React.cloneElement(child, { activeTab });
+                        return React.cloneElement(child, {
+                            activeTab,
+                            onTabChange: setActiveTab // Pass the setter
+                        });
                     }
                     return child;
                 })}

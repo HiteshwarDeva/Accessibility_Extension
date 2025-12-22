@@ -13,15 +13,26 @@ export class OverlayView {
 
     // --- Tab Order Overlay ---
 
-    static showTabOrder() {
+    static showTabOrder(data = null) {
         this.hideTabOrder();
         this.injectTabOrderStyles();
 
-        // Use DomModel to get elements
-        const sortedElements = DomModel.getFocusableElements();
+        let badges = [];
 
-        // Create badges
-        const badges = sortedElements.map((el, index) => this.createTabBadge(el, index + 1));
+        if (data && Array.isArray(data)) {
+            // Replay mode: Use provided data and resolve current DOM elements by XPath
+            badges = data.map(item => {
+                const el = DomModel.resolvePath(item.xpath);
+                if (el) {
+                    return this.createTabBadge(el, item.order);
+                }
+                return null;
+            }).filter(Boolean);
+        } else {
+            // Live mode: Get elements from current DOM
+            const sortedElements = DomModel.getFocusableElements();
+            badges = sortedElements.map((el, index) => this.createTabBadge(el, index + 1));
+        }
 
         // Create arrows
         this.createArrowConnectors(badges);
@@ -157,9 +168,18 @@ export class OverlayView {
         return line;
     }
 
-    static highlightTabOrderElement(orderNumber) {
-        const sortedElements = DomModel.getFocusableElements();
-        const targetElement = sortedElements[orderNumber - 1];
+    static highlightTabOrderElement(orderNumber, path = null) {
+        let targetElement = null;
+
+        if (path) {
+            targetElement = DomModel.resolvePath(path);
+        }
+
+        if (!targetElement) {
+            const sortedElements = DomModel.getFocusableElements();
+            targetElement = sortedElements[orderNumber - 1];
+        }
+
         if (targetElement) {
             targetElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
             this.blinkElementBoundingBox(targetElement);

@@ -21,10 +21,10 @@ const Placeholder = ({ message }) => (
   <div style={{ padding: 20, textAlign: 'center' }}>{message}</div>
 );
 
-const Content = ({ activeTab }) => {
+const Content = ({ activeTab, onTabChange }) => {
   switch (activeTab) {
     case 'details':
-      return <Dashboard />;
+      return <Dashboard onTabChange={onTabChange} />;
     case 'contrast':
       return <ContrastSection />;
     case 'order':

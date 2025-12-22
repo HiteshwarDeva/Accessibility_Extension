@@ -1,18 +1,24 @@
 import React, { useEffect } from 'react';
 import styles from './StructurePanel.module.css';
 import { useAccessibility } from '../../context/AccessibilityContext';
+import Toast from '../Dashboard/Toast';
 
 const StructurePanel = () => {
-    const { structure: structureContext, axe } = useAccessibility();
+    const { structure: structureContext, axe, history } = useAccessibility();
     const {
         structure,
         isLoadingStructure,
         structureError,
         runStructureScan,
         showStructureBadges,
-        scrollToElement
+        scrollToElement,
+        structureMetadata,
+        setStructureMetadata
     } = structureContext;
     const { clearHighlights } = axe;
+    const { saveScan, scanHistory, loadScanData } = history;
+    const { setStructure } = structureContext;
+    const [toastMessage, setToastMessage] = React.useState(null);
 
     const [isOverlayVisible, setIsOverlayVisible] = React.useState(false);
 
@@ -46,15 +52,83 @@ const StructurePanel = () => {
         }
     };
 
+    const handleSaveScan = async () => {
+        if (!structure) return;
+        try {
+            const metadata = structureMetadata || {
+                title: document.title,
+                url: window.location.href
+            };
+            await saveScan('structure', structure, metadata);
+            setToastMessage('Structure scan saved to history!');
+        } catch (e) {
+            console.error(e);
+            setToastMessage('Failed to save scan.');
+        }
+    };
+
     if (isLoadingStructure) return <div className={styles.container}>Loading structure...</div>;
-    if (structureError) return <div className={styles.container}>Error: {structureError}</div>;
-    if (!structure || structure.length === 0) return <div className={styles.container}>No structural elements found.</div>;
+
+    const handleLoadPrevious = async () => {
+        // Find most recent structure scan in history
+        const previousScan = scanHistory
+            .filter(s => s.type === 'structure')
+            .sort((a, b) => b.timestamp - a.timestamp)[0];
+
+        if (!previousScan) {
+            setToastMessage('No previous Structure scans found.');
+            return;
+        }
+
+        try {
+            const fullScan = await loadScanData(previousScan.id);
+            if (fullScan) {
+                setStructure(fullScan.data);
+                if (fullScan.metadata) setStructureMetadata(fullScan.metadata);
+                showStructureBadges(fullScan.data);
+                setIsOverlayVisible(true);
+                setToastMessage('Previous Structure overlay loaded.');
+            }
+        } catch (e) {
+            console.error(e);
+            setToastMessage('Failed to load previous scan.');
+        }
+    };
+
+    if (structureError) return (
+        <div className={styles.container}>
+            <p>Error: {structureError}</p>
+            <button
+                onClick={handleLoadPrevious}
+                className={styles.overlayBtn}
+                style={{ marginTop: '12px' }}
+            >
+                📂 Load Previous
+            </button>
+        </div>
+    );
+
+    if (!structure || structure.length === 0) return (
+        <div className={styles.container}>
+            <p>No structural elements found.</p>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                <button onClick={runStructureScan} className={styles.overlayBtn}>🔄 Run Scan</button>
+                <button onClick={handleLoadPrevious} className={styles.overlayBtn}>📂 Load Previous</button>
+            </div>
+        </div>
+    );
 
     return (
         <div className={styles.container}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <div className={styles.title} style={{ marginBottom: 0, borderBottom: 'none' }}>Structure</div> {/* Remove border/margin from title wrapper for alignment */}
                 <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                        onClick={handleSaveScan}
+                        className={styles.overlayBtn}
+                    >
+                        💾 Save
+                    </button>
                     <button
                         onClick={runStructureScan}
                         className={styles.overlayBtn}
@@ -74,7 +148,16 @@ const StructurePanel = () => {
                     <StructureItem key={index} item={item} scrollToElement={scrollToElement} />
                 ))}
             </div>
-        </div>
+
+            {
+                toastMessage && (
+                    <Toast
+                        message={toastMessage}
+                        onClose={() => setToastMessage(null)}
+                    />
+                )
+            }
+        </div >
     );
 };
 

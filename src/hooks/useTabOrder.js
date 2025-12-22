@@ -4,6 +4,7 @@ import { sendMessageToInspectedTab } from '../utils/messageHelpers';
 
 export const useTabOrder = () => {
     const [orderData, setOrderData] = useState(null);
+    const [tabOrderMetadata, setTabOrderMetadata] = useState(null);
     const [isScanningTabOrder, setIsScanningTabOrder] = useState(false);
     const [tabOrderError, setTabOrderError] = useState(null);
     const [overlayVisible, setOverlayVisible] = useState(false);
@@ -12,6 +13,7 @@ export const useTabOrder = () => {
         setIsScanningTabOrder(true);
         setTabOrderError(null);
         setOrderData(null);
+        setTabOrderMetadata(null);
 
         sendMessageToInspectedTab({ type: 'get-tab-order' }, (response) => {
             setIsScanningTabOrder(false);
@@ -24,11 +26,12 @@ export const useTabOrder = () => {
                 return;
             }
             setOrderData(response.data);
+            setTabOrderMetadata(response.metadata || null);
         });
     }, []);
 
-    const showOverlay = useCallback(() => {
-        sendMessageToInspectedTab({ type: 'show-tab-order-overlay' }, (response) => {
+    const showOverlay = useCallback((data = null) => {
+        sendMessageToInspectedTab({ type: 'show-tab-order-overlay', data }, (response) => {
             if (response && response.ok) {
                 setOverlayVisible(true);
             }
@@ -43,8 +46,8 @@ export const useTabOrder = () => {
         });
     }, []);
 
-    const highlightElement = useCallback((orderNumber) => {
-        sendMessageToInspectedTab({ type: 'highlight-tab-order-element', orderNumber }, (response) => {
+    const highlightElement = useCallback((orderNumber, path = null) => {
+        sendMessageToInspectedTab({ type: 'highlight-tab-order-element', orderNumber, path }, (response) => {
             // Optional: handle response if needed
         });
     }, []);
@@ -57,6 +60,9 @@ export const useTabOrder = () => {
         runTabOrderScan,
         showOverlay,
         hideOverlay,
-        highlightElement
+        highlightElement,
+        setOrderData,
+        setTabOrderMetadata,
+        tabOrderMetadata
     };
 };

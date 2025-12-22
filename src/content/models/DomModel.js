@@ -247,16 +247,46 @@ export class DomModel {
             return 1;
         });
 
-        // Build the tab order data with tabindex information
+        // Build the tab order data with stable identity and layout info
         return sortedElements.map((el, index) => {
             const tabindex = el.getAttribute('tabindex');
+            const xpath = pathFor(el);
+            const rect = el.getBoundingClientRect();
+
+            const role = getElementRole(el);
+            const name = getAccessibleName(el);
+
+            // Simple hash for stable identity (semantic, not positional)
+            const hash = (str) => {
+                let h = 0;
+                for (let i = 0; i < str.length; i++) {
+                    h = ((h << 5) - h) + str.charCodeAt(i);
+                    h |= 0;
+                }
+                return (h >>> 0).toString(16);
+            };
+
+            // IMPORTANT: identity source must NOT include order/index
+            const identitySource = `${xpath}|${role}|${name}`;
+
             return {
-                order: index + 1,
-                role: getElementRole(el),
-                name: getAccessibleName(el),
-                tabindex: tabindex ? parseInt(tabindex) : (isNaturallyFocusable(el) ? 0 : null)
+                element_key: `order:${hash(identitySource)}`, // ✅ stable identity
+                order: index + 1,                              // ✅ position stored separately
+                role,
+                name,
+                tabindex: tabindex
+                    ? parseInt(tabindex, 10)
+                    : (isNaturallyFocusable(el) ? 0 : null),
+                xpath,
+                boundingBox: {
+                    x: Math.round(rect.x),
+                    y: Math.round(rect.y),
+                    width: Math.round(rect.width),
+                    height: Math.round(rect.height)
+                }
             };
         });
+
     }
 
     // Shared helper function to get focusable elements with proper filtering and sorting
@@ -388,33 +418,6 @@ export class DomModel {
             }
 
             return '';
-        }
-
-        function rectFor(el) {
-            try {
-                const r = el.getBoundingClientRect();
-                return { top: Math.round(r.top), left: Math.round(r.left), width: Math.round(r.width), height: Math.round(r.height) };
-            } catch (e) { return null; }
-        }
-
-        function pathFor(el) {
-            if (!el || el.nodeType !== 1) return null;
-            if (el.id) return '#' + el.id;
-            const parts = [];
-            let node = el;
-            while (node && node.nodeType === 1 && node.tagName.toLowerCase() !== 'html') {
-                const tag = node.tagName.toLowerCase();
-                let i = 1;
-                let sib = node.previousElementSibling;
-                while (sib) {
-                    if (sib.tagName && sib.tagName.toLowerCase() === tag) i++;
-                    sib = sib.previousElementSibling;
-                }
-                parts.unshift(`${tag}[${i}]`);
-                node = node.parentElement;
-            }
-            parts.unshift('html');
-            return '/' + parts.join('/');
         }
 
         function scanDocument(rootDoc, frameInfo = null) {
@@ -623,6 +626,40 @@ export class DomModel {
 }
 
 // Helper functions (standalone)
+
+function rectFor(el) {
+    try {
+        const r = el.getBoundingClientRect();
+        return {
+            top: Math.round(r.top),
+            left: Math.round(r.left),
+            width: Math.round(r.width),
+            height: Math.round(r.height),
+            x: Math.round(r.x),
+            y: Math.round(r.y)
+        };
+    } catch (e) { return null; }
+}
+
+function pathFor(el) {
+    if (!el || el.nodeType !== 1) return null;
+    if (el.id) return '#' + el.id;
+    const parts = [];
+    let node = el;
+    while (node && node.nodeType === 1 && node.tagName.toLowerCase() !== 'html') {
+        const tag = node.tagName.toLowerCase();
+        let i = 1;
+        let sib = node.previousElementSibling;
+        while (sib) {
+            if (sib.tagName && sib.tagName.toLowerCase() === tag) i++;
+            sib = sib.previousElementSibling;
+        }
+        parts.unshift(`${tag}[${i}]`);
+        node = node.parentElement;
+    }
+    parts.unshift('html');
+    return '/' + parts.join('/');
+}
 
 function xpathToElement(xpath, doc = document) {
     try {

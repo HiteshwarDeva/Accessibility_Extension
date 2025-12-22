@@ -3,6 +3,7 @@ import { sendMessageToInspectedTab } from '../utils/messageHelpers';
 
 export const useStructure = () => {
     const [structure, setStructure] = useState(null);
+    const [structureMetadata, setStructureMetadata] = useState(null);
     const [isLoadingStructure, setIsLoadingStructure] = useState(false);
     const [structureError, setStructureError] = useState(null);
 
@@ -10,6 +11,7 @@ export const useStructure = () => {
         setIsLoadingStructure(true);
         setStructureError(null);
         setStructure(null);
+        setStructureMetadata(null);
 
         sendMessageToInspectedTab({ type: 'get-structure' }, (response) => {
             setIsLoadingStructure(false);
@@ -24,11 +26,17 @@ export const useStructure = () => {
             // Handle new structure format: response.structure.structuralElements
             const elements = response.structure?.structuralElements || response.structure || [];
             setStructure(elements);
+            if (response.structure && response.structure.url) {
+                setStructureMetadata({
+                    url: response.structure.url,
+                    title: response.structure.title
+                });
+            }
         });
     }, []);
 
-    const showStructureBadges = useCallback(() => {
-        sendMessageToInspectedTab({ type: 'show-structure-badges' }, () => { });
+    const showStructureBadges = useCallback((data = null) => {
+        sendMessageToInspectedTab({ type: 'show-structure-badges', data }, () => { });
     }, []);
 
     const scrollToElement = useCallback((path) => {
@@ -41,6 +49,9 @@ export const useStructure = () => {
         structureError,
         runStructureScan,
         showStructureBadges,
-        scrollToElement
+        scrollToElement,
+        setStructure,
+        setStructureMetadata,
+        structureMetadata
     };
 };

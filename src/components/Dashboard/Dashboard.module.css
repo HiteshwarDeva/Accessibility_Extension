@@ -938,3 +938,101 @@
         justify-content: center;
     }
 }
+
+/* History Panel Styles */
+.historyPanel {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+    margin-top: 16px;
+}
+
+.historyList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.historyItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background-color: #f9fafb;
+}
+
+.historyInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+}
+
+.historyHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.historyType {
+    font-size: 10px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #6b7280;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.historyDate {
+    font-size: 11px;
+    color: #6b7280;
+}
+
+.historyTitle {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.historyActions {
+    display: flex;
+    gap: 4px;
+    margin-left: 8px;
+}
+
+.actionBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.actionBtn:hover {
+    background-color: #e5e7eb;
+}
+
+.deleteBtn:hover {
+    background-color: #fee2e2;
+}
+
+.historyEmpty {
+    text-align: center;
+    padding: 24px;
+    color: #6b7280;
+    background-color: #f9fafb;
+    border: 1px dashed #e5e7eb;
+    border-radius: 8px;
+    margin-top: 16px;
+}

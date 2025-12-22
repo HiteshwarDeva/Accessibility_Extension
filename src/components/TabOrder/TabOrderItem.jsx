@@ -1,10 +1,10 @@
 import React from 'react';
 import styles from './TabOrder.module.css';
 
-const TabOrderItem = ({ order, role, name, tabindex, onHighlight }) => {
+const TabOrderItem = ({ order, role, name, tabindex, xpath, onHighlight }) => {
     const handleClick = () => {
         if (onHighlight) {
-            onHighlight(order);
+            onHighlight(order, xpath || null);
         }
     };
 

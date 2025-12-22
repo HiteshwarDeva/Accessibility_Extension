@@ -2,6 +2,8 @@ import React, { createContext, useContext } from 'react';
 import { useAxeRunner } from '../hooks/useAxeRunner';
 import { useTabOrder } from '../hooks/useTabOrder';
 import { useStructure } from '../hooks/useStructure';
+import { ScanStorage } from '../utils/scanStorage';
+import { useState, useEffect, useCallback } from 'react';
 
 const AccessibilityContext = createContext(null);
 
@@ -14,6 +16,35 @@ export const AccessibilityProvider = ({ children }) => {
     const axeData = useAxeRunner();
     const tabOrderData = useTabOrder();
     const structureData = useStructure();
+
+    // History State
+    const [scanHistory, setScanHistory] = useState([]);
+
+    // Load initial history
+    useEffect(() => {
+        ScanStorage.getScans().then(setScanHistory).catch(console.error);
+    }, []);
+
+    const refreshHistory = useCallback(async () => {
+        const history = await ScanStorage.getScans();
+        setScanHistory(history);
+    }, []);
+
+    const saveScan = useCallback(async (type, data, metadata = {}) => {
+        await ScanStorage.saveScan(type, data, metadata);
+        await refreshHistory();
+    }, [refreshHistory]);
+
+    const deleteScan = useCallback(async (id) => {
+        await ScanStorage.deleteScan(id);
+        await refreshHistory();
+    }, [refreshHistory]);
+
+    // Function to load a scan into the view (to be passed to specific contexts if needed, 
+    // or handled by components directly calling context)
+    const loadScanData = useCallback(async (id) => {
+        return await ScanStorage.getScan(id);
+    }, []);
 
     // Combine all into a single context value
     const contextValue = {
@@ -38,7 +69,10 @@ export const AccessibilityProvider = ({ children }) => {
             runTabOrderScan: tabOrderData.runTabOrderScan,
             showOverlay: tabOrderData.showOverlay,
             hideOverlay: tabOrderData.hideOverlay,
-            highlightElement: tabOrderData.highlightElement
+            highlightElement: tabOrderData.highlightElement,
+            setOrderData: tabOrderData.setOrderData,
+            setTabOrderMetadata: tabOrderData.setTabOrderMetadata,
+            tabOrderMetadata: tabOrderData.tabOrderMetadata
         },
         // Structure data (for Structure section)
         structure: {
@@ -47,7 +81,18 @@ export const AccessibilityProvider = ({ children }) => {
             structureError: structureData.structureError,
             runStructureScan: structureData.runStructureScan,
             showStructureBadges: structureData.showStructureBadges,
-            scrollToElement: structureData.scrollToElement
+            scrollToElement: structureData.scrollToElement,
+            setStructure: structureData.setStructure,
+            setStructureMetadata: structureData.setStructureMetadata,
+            structureMetadata: structureData.structureMetadata
+        },
+        // History data
+        history: {
+            scanHistory,
+            saveScan,
+            deleteScan,
+            loadScanData,
+            refreshHistory
         }
     };
 
