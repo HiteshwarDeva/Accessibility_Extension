@@ -289,6 +289,16 @@
     background: transparent;
 }
 
+.btnActive {
+    border: none;
+    border-radius: 999px;
+    padding: 10px 18px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #16a34a;
+    color: white;
+}
+
 .btn-secondary {
     background: #f1f5f9;
     color: #0f172a;

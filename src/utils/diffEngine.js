@@ -97,18 +97,41 @@ export const DiffEngine = {
         });
 
         // 3. Detect Changed (Position/Index)
-        // For items that exist in both (by key), check if their 'order' changed significantly?
-        // Actually, just listing Added/Removed is usually most useful.
-        // We can check if `tabindex` changed for matched items.
+        const oldKeyMap = new Map();
+        oldList.forEach(item => {
+            const key = generateKey(item);
+            if (!oldKeyMap.has(key)) oldKeyMap.set(key, []);
+            oldKeyMap.get(key).push(item);
+        });
 
-        // Let's iterate new list and see if we match an old item
-        // This is complex with duplicates.
-        // Simplification: We just return Added and Removed based on Role+Name identity.
+        const usedOldIndices = new Set();
+
+        newList.forEach((newItem) => {
+            const key = generateKey(newItem);
+            if (oldKeyMap.has(key)) {
+                const matches = oldKeyMap.get(key);
+                // Find first unused match
+                const matchIndex = matches.findIndex(m => !usedOldIndices.has(m.element_key + m.order));
+                if (matchIndex !== -1) {
+                    const match = matches[matchIndex];
+                    usedOldIndices.add(match.element_key + match.order);
+
+                    if (match.order !== newItem.order) {
+                        changed.push({
+                            ...newItem,
+                            oldOrder: match.order,
+                            newOrder: newItem.order
+                        });
+                    }
+                }
+            }
+        });
 
         return {
             type: 'tab-order',
             added,
             removed,
+            changed,
             totalOld: oldList.length,
             totalNew: newList.length
         };

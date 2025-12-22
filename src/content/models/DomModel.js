@@ -256,21 +256,11 @@ export class DomModel {
             const role = getElementRole(el);
             const name = getAccessibleName(el);
 
-            // Simple hash for stable identity (semantic, not positional)
-            const hash = (str) => {
-                let h = 0;
-                for (let i = 0; i < str.length; i++) {
-                    h = ((h << 5) - h) + str.charCodeAt(i);
-                    h |= 0;
-                }
-                return (h >>> 0).toString(16);
-            };
-
             // IMPORTANT: identity source must NOT include order/index
             const identitySource = `${xpath}|${role}|${name}`;
 
             return {
-                element_key: `order:${hash(identitySource)}`, // ✅ stable identity
+                element_key: `order:${DomModel.hash(identitySource)}`, // ✅ stable identity
                 order: index + 1,                              // ✅ position stored separately
                 role,
                 name,
@@ -498,6 +488,7 @@ export class DomModel {
                         const childrenCount = node.children ? node.children.length : 0;
 
                         results.push({
+                            element_key: `struct:${DomModel.hash(`${path}|${role || 'no-role'}|${name || 'no-name'}`)}`,
                             type: type,
                             tag: tag,
                             role: role || null,
@@ -622,6 +613,18 @@ export class DomModel {
         } catch (e) {
             return null;
         }
+    }
+
+    /**
+     * Simple hash for stable identity
+     */
+    static hash(str) {
+        let h = 0;
+        for (let i = 0; i < str.length; i++) {
+            h = ((h << 5) - h) + str.charCodeAt(i);
+            h |= 0;
+        }
+        return (h >>> 0).toString(16);
     }
 }
 

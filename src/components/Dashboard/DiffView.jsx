@@ -1,12 +1,28 @@
 import React, { useMemo } from 'react';
 import styles from './Dashboard.module.css';
 import { DiffEngine } from '../../utils/diffEngine';
+import { useAccessibility } from '../../context/AccessibilityContext';
 
 const DiffView = ({ oldScan, newScan, onClose }) => {
+    const { tabOrder, structure } = useAccessibility();
+
     const diff = useMemo(() => {
         if (!oldScan || !newScan) return null;
         return DiffEngine.compareScans(oldScan, newScan);
     }, [oldScan, newScan]);
+
+    const isOverlayOn = oldScan.type === 'tab-order' ? tabOrder.isDiffOverlayVisible : structure.isDiffOverlayVisible;
+
+    const handleToggleOverlay = () => {
+        if (!diff) return;
+        if (isOverlayOn) {
+            if (oldScan.type === 'tab-order') tabOrder.hideDiffOverlay();
+            else structure.hideDiffOverlay();
+        } else {
+            if (oldScan.type === 'tab-order') tabOrder.showDiffOverlay(diff);
+            else structure.showDiffOverlay(diff);
+        }
+    };
 
     if (!diff) return <div>Loading diff...</div>;
     if (diff.error) return <div className={styles.errorMessage}>{diff.error}</div>;
@@ -14,13 +30,22 @@ const DiffView = ({ oldScan, newScan, onClose }) => {
     return (
         <div className={styles.panel}>
             <div className={styles.categoryHeader}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <button onClick={onClose} className={styles.btn} style={{ fontSize: '1.2rem', padding: '4px 8px' }}>
-                        ←
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <button onClick={onClose} className={styles.btn} style={{ fontSize: '1.2rem', padding: '4px 8px' }}>
+                            ←
+                        </button>
+                        <h3 className={styles.panelTitle}>
+                            Scan Comparison ({oldScan.type === 'tab-order' ? 'Tab Order' : 'Structure'})
+                        </h3>
+                    </div>
+                    <button
+                        onClick={handleToggleOverlay}
+                        className={isOverlayOn ? styles.btnActive : styles.primaryBtn}
+                        style={{ padding: '6px 12px', fontSize: '0.9rem' }}
+                    >
+                        {isOverlayOn ? '👁️ Hide Visual Overlay' : '👁️ Show Visual Overlay'}
                     </button>
-                    <h3 className={styles.panelTitle}>
-                        Scan Comparison ({oldScan.type === 'tab-order' ? 'Tab Order' : 'Structure'})
-                    </h3>
                 </div>
             </div>
 

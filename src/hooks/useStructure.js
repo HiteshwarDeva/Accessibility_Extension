@@ -6,6 +6,7 @@ export const useStructure = () => {
     const [structureMetadata, setStructureMetadata] = useState(null);
     const [isLoadingStructure, setIsLoadingStructure] = useState(false);
     const [structureError, setStructureError] = useState(null);
+    const [isDiffOverlayVisible, setIsDiffOverlayVisible] = useState(false);
 
     const runStructureScan = useCallback(() => {
         setIsLoadingStructure(true);
@@ -43,6 +44,22 @@ export const useStructure = () => {
         sendMessageToInspectedTab({ type: 'scroll-to-element', path }, () => { });
     }, []);
 
+    const showDiffOverlay = useCallback((diff) => {
+        sendMessageToInspectedTab({ type: 'show-diff-overlay', diff }, (response) => {
+            if (response && response.ok) {
+                setIsDiffOverlayVisible(true);
+            }
+        });
+    }, []);
+
+    const hideDiffOverlay = useCallback(() => {
+        sendMessageToInspectedTab({ type: 'hide-tab-order-overlay' }, (response) => {
+            if (response && response.ok) {
+                setIsDiffOverlayVisible(false);
+            }
+        });
+    }, []);
+
     return {
         structure,
         isLoadingStructure,
@@ -50,8 +67,11 @@ export const useStructure = () => {
         runStructureScan,
         showStructureBadges,
         scrollToElement,
+        showDiffOverlay,
+        hideDiffOverlay,
         setStructure,
         setStructureMetadata,
-        structureMetadata
+        structureMetadata,
+        isDiffOverlayVisible
     };
 };

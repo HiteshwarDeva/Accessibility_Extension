@@ -63,4 +63,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         HighlightController.handleScrollToElement(message, sendResponse);
         return;
     }
+    if (message.type === 'show-diff-overlay') {
+        HighlightController.handleShowDiffOverlay(message, sendResponse);
+        return;
+    }
 });

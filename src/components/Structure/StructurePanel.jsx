@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import styles from './StructurePanel.module.css';
 import { useAccessibility } from '../../context/AccessibilityContext';
 import Toast from '../Dashboard/Toast';
+import { DiffEngine } from '../../utils/diffEngine';
 
 const StructurePanel = () => {
     const { structure: structureContext, axe, history } = useAccessibility();
@@ -9,8 +10,10 @@ const StructurePanel = () => {
         structure,
         isLoadingStructure,
         structureError,
+        isDiffOverlayVisible,
         runStructureScan,
         showStructureBadges,
+        hideDiffOverlay,
         scrollToElement,
         structureMetadata,
         setStructureMetadata
@@ -29,8 +32,9 @@ const StructurePanel = () => {
         // Cleanup: Clear highlights when panel unmounts
         return () => {
             clearHighlights();
+            if (isDiffOverlayVisible) hideDiffOverlay();
         };
-    }, [runStructureScan, clearHighlights]);
+    }, [runStructureScan, clearHighlights, isDiffOverlayVisible, hideDiffOverlay]);
 
     // Show badges after structure is loaded
     useEffect(() => {
@@ -47,6 +51,7 @@ const StructurePanel = () => {
             clearHighlights();
             setIsOverlayVisible(false);
         } else {
+            if (isDiffOverlayVisible) hideDiffOverlay();
             showStructureBadges();
             setIsOverlayVisible(true);
         }
@@ -69,29 +74,41 @@ const StructurePanel = () => {
 
     if (isLoadingStructure) return <div className={styles.container}>Loading structure...</div>;
 
-    const handleLoadPrevious = async () => {
+    const handleComparePrevious = async () => {
+        if (isDiffOverlayVisible) {
+            hideDiffOverlay();
+            return;
+        }
+
         // Find most recent structure scan in history
-        const previousScan = scanHistory
+        const previousScanSummary = [...scanHistory]
             .filter(s => s.type === 'structure')
             .sort((a, b) => b.timestamp - a.timestamp)[0];
 
-        if (!previousScan) {
+        if (!previousScanSummary) {
             setToastMessage('No previous Structure scans found.');
             return;
         }
 
+        if (!structure) {
+            setToastMessage('Please run a current scan first to compare.');
+            return;
+        }
+
         try {
-            const fullScan = await loadScanData(previousScan.id);
-            if (fullScan) {
-                setStructure(fullScan.data);
-                if (fullScan.metadata) setStructureMetadata(fullScan.metadata);
-                showStructureBadges(fullScan.data);
-                setIsOverlayVisible(true);
-                setToastMessage('Previous Structure overlay loaded.');
+            const oldScan = await loadScanData(previousScanSummary.id);
+            if (oldScan) {
+                const diff = DiffEngine.compareScans(oldScan, { type: 'structure', data: structure });
+                if (isOverlayVisible) {
+                    clearHighlights();
+                    setIsOverlayVisible(false);
+                }
+                structureContext.showDiffOverlay(diff); // Use the new context method
+                setToastMessage('Diff Overlay loaded: Green (+), Red (-)');
             }
         } catch (e) {
             console.error(e);
-            setToastMessage('Failed to load previous scan.');
+            setToastMessage('Failed to compare with previous scan.');
         }
     };
 
@@ -99,11 +116,11 @@ const StructurePanel = () => {
         <div className={styles.container}>
             <p>Error: {structureError}</p>
             <button
-                onClick={handleLoadPrevious}
+                onClick={handleComparePrevious}
                 className={styles.overlayBtn}
                 style={{ marginTop: '12px' }}
             >
-                📂 Load Previous
+                📊 Compare with Previous
             </button>
         </div>
     );
@@ -113,7 +130,7 @@ const StructurePanel = () => {
             <p>No structural elements found.</p>
             <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
                 <button onClick={runStructureScan} className={styles.overlayBtn}>🔄 Run Scan</button>
-                <button onClick={handleLoadPrevious} className={styles.overlayBtn}>📂 Load Previous</button>
+                <button onClick={handleComparePrevious} className={styles.overlayBtn}>📊 Compare with Previous</button>
             </div>
         </div>
     );
@@ -140,6 +157,12 @@ const StructurePanel = () => {
                         className={`${styles.overlayBtn} ${isOverlayVisible ? styles.overlayBtnActive : ''}`}
                     >
                         {isOverlayVisible ? '👁️ Hide Overlay' : '👁️ Show Overlay'}
+                    </button>
+                    <button
+                        onClick={handleComparePrevious}
+                        className={`${styles.overlayBtn} ${isDiffOverlayVisible ? styles.overlayBtnActive : ''}`}
+                    >
+                        {isDiffOverlayVisible ? '📊 Hide Compare' : '📊 Compare'}
                     </button>
                 </div>
             </div>

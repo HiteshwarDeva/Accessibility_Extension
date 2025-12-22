@@ -97,4 +97,13 @@ export class HighlightController {
         }
         sendResponse({ ok: true });
     }
+
+    static handleShowDiffOverlay(message, sendResponse) {
+        try {
+            OverlayView.showDiffOverlay(message.diff);
+            sendResponse({ ok: true });
+        } catch (error) {
+            sendResponse({ ok: false, error: error.message });
+        }
+    }
 }

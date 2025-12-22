@@ -58,6 +58,9 @@ export class OverlayView {
         // Remove styles
         const style = document.getElementById(TAB_ORDER_STYLE_ID);
         if (style) style.remove();
+
+        // Remove floating panel
+        this.removeFloatingDiffPanel();
     }
 
     static injectTabOrderStyles() {
@@ -70,22 +73,91 @@ export class OverlayView {
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        min-width: 28px !important;
-        height: 28px !important;
-        background: #5b9bd5 !important;
+        min-width: 24px !important;
+        height: 24px !important;
+        background: #2563eb !important;
         color: #ffffff !important;
-        border-radius: 50% !important;
-        font-family: Arial, sans-serif !important;
-        font-size: 14px !important;
-        font-weight: bold !important;
-        padding: 4px !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+        border-radius: 999px !important;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        padding: 4px 10px !important;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4) !important;
         pointer-events: none !important;
         z-index: 2147483647 !important;
         border: 2px solid #ffffff !important;
         line-height: 1 !important;
         text-align: center !important;
+        box-sizing: border-box !important;
       }
+      @keyframes pulse-diff-added {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+        70% { transform: scale(1.05); box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+      }
+      .__diff_added { 
+        animation: pulse-diff-added 2s infinite !important;
+        background: #22c55e !important;
+        box-shadow: 0 0 15px rgba(34, 197, 94, 0.6) !important;
+      }
+      .__diff_ghost { 
+        opacity: 0.8 !important; 
+        border: 2px dashed #dc2626 !important;
+        background: rgba(220, 38, 38, 0.2) !important;
+        color: #dc2626 !important;
+        box-shadow: 0 0 15px rgba(220, 38, 38, 0.4) !important;
+      }
+       .__diff_reordered { 
+        background: #f97316 !important;
+        box-shadow: 0 0 15px rgba(249, 115, 22, 0.6) !important;
+      }
+      .__floating_diff_panel {
+        position: fixed !important;
+        top: 20px !important;
+        right: 20px !important;
+        width: 280px !important;
+        background: rgba(255, 255, 255, 0.85) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 16px !important;
+        padding: 20px !important;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+        z-index: 2147483647 !important;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+        color: #1e293b !important;
+        pointer-events: auto !important;
+      }
+      .__floating_diff_panel h3 {
+        margin: 0 0 16px 0 !important;
+        font-size: 16px !important;
+        font-weight: 700 !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+      }
+      .__diff_panel_close {
+        cursor: pointer !important;
+        background: none !important;
+        border: none !important;
+        padding: 4px !important;
+        font-size: 18px !important;
+        color: #64748b !important;
+      }
+      .__diff_stat_group {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+      }
+      .__diff_stat_item {
+        padding: 10px !important;
+        border-radius: 10px !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+      }
+      .__diff_stat_added { background: rgba(34, 197, 94, 0.1) !important; color: #166534 !important; border-left: 4px solid #22c55e !important; }
+      .__diff_stat_removed { background: rgba(220, 38, 38, 0.1) !important; color: #991b1b !important; border-left: 4px solid #dc2626 !important; }
+      .__diff_stat_reordered { background: rgba(249, 115, 22, 0.1) !important; color: #9a3412 !important; border-left: 4px solid #f97316 !important; }
     `;
         document.documentElement.appendChild(style);
     }
@@ -208,6 +280,125 @@ export class OverlayView {
 
     static removeBoundingBox() {
         const existing = document.querySelector('.__tab_order_bounding_box');
+        if (existing) existing.remove();
+    }
+
+    // --- Diff Overlay ---
+
+    static showDiffOverlay(diff) {
+        this.hideTabOrder();
+        this.clearOverlays();
+        this.injectTabOrderStyles();
+        this.removeFloatingDiffPanel();
+
+        if (!diff) return;
+
+        // 1. Handle Added
+        if (diff.added) {
+            diff.added.forEach(item => {
+                const el = DomModel.resolvePath(item.xpath || item.path);
+                if (el) {
+                    const badge = this.createDiffBadge(el, '+');
+                    badge.classList.add('__diff_added');
+                    badge.title = `Added: ${item.name || item.tag}`;
+                }
+            });
+        }
+
+        // 2. Handle Removed (Ghost)
+        if (diff.removed) {
+            diff.removed.forEach(item => {
+                const rect = item.boundingBox || item.rect || (item.x !== undefined ? { left: item.x, top: item.y, width: item.width, height: item.height } : null);
+                if (rect) {
+                    const badge = this.createGhostBadge(rect, '-');
+                    badge.classList.add('__diff_ghost');
+                    badge.title = `Removed: ${item.name || item.tag}`;
+                }
+            });
+        }
+
+        // 3. Handle Reordered
+        if (diff.changed) {
+            diff.changed.forEach(item => {
+                const el = DomModel.resolvePath(item.xpath);
+                if (el) {
+                    const badge = this.createDiffBadge(el, `${item.oldOrder}→${item.newOrder}`);
+                    badge.classList.add('__diff_reordered');
+                    badge.title = `Moved from ${item.oldOrder} to ${item.newOrder}`;
+                }
+            });
+        }
+
+        this.showFloatingDiffPanel(diff);
+    }
+
+    static createDiffBadge(element, text) {
+        const badge = this.createTabBadge(element, text);
+        // Style is now mostly handled by classes (__diff_added, etc.)
+        return badge;
+    }
+
+    static createGhostBadge(rect, text) {
+        const badge = document.createElement('div');
+        badge.className = TAB_ORDER_OVERLAY_CLASS;
+        badge.textContent = text;
+        badge.style.left = `${(rect.left || rect.x) + window.scrollX}px`;
+        badge.style.top = `${(rect.top || rect.y) + window.scrollY}px`;
+        badge.style.zIndex = '2147483646'; // Slightly behind active badges
+
+        document.body.appendChild(badge);
+        return badge;
+    }
+
+    static showFloatingDiffPanel(diff) {
+        this.removeFloatingDiffPanel();
+
+        const panel = document.createElement('div');
+        panel.className = '__floating_diff_panel';
+
+        const header = document.createElement('h3');
+        header.innerHTML = `<span>Accessibility Diff</span>`;
+
+        const closeBtn = document.createElement('button');
+        closeBtn.className = '__diff_panel_close';
+        closeBtn.innerHTML = '✕';
+        closeBtn.onclick = () => {
+            this.hideTabOrder();
+            this.removeFloatingDiffPanel();
+        };
+        header.appendChild(closeBtn);
+        panel.appendChild(header);
+
+        const statsGroup = document.createElement('div');
+        statsGroup.className = '__diff_stat_group';
+
+        if (diff.added && diff.added.length > 0) {
+            const item = document.createElement('div');
+            item.className = '__diff_stat_item __diff_stat_added';
+            item.innerHTML = `Added: ${diff.added.length} elements`;
+            statsGroup.appendChild(item);
+        }
+
+        if (diff.removed && diff.removed.length > 0) {
+            const item = document.createElement('div');
+            item.className = '__diff_stat_item __diff_stat_removed';
+            item.innerHTML = `Removed: ${diff.removed.length} elements`;
+            statsGroup.appendChild(item);
+        }
+
+        if (diff.changed && diff.changed.length > 0) {
+            const item = document.createElement('div');
+            item.className = '__diff_stat_item __diff_stat_reordered';
+            item.innerHTML = `Reordered: ${diff.changed.length} elements`;
+            statsGroup.appendChild(item);
+        }
+
+        panel.appendChild(statsGroup);
+        document.body.appendChild(panel);
+    }
+
+    static removeFloatingDiffPanel() {
+        const existing = document.querySelector('.__floating_diff_panel');
         if (existing) existing.remove();
     }
 

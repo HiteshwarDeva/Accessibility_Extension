@@ -4,11 +4,16 @@ import { useAccessibility } from '../../context/AccessibilityContext';
 import TabOrderInfo from './TabOrderInfo';
 import TabOrderItem from './TabOrderItem';
 import Toast from '../Dashboard/Toast';
+import { DiffEngine } from '../../utils/diffEngine';
 
 const TabOrderSection = () => {
 
     const { tabOrder, history } = useAccessibility();
-    const { orderData, isScanningTabOrder, tabOrderError, overlayVisible, runTabOrderScan, showOverlay, hideOverlay, highlightElement, tabOrderMetadata, setOrderData, setTabOrderMetadata } = tabOrder;
+    const {
+        orderData, isScanningTabOrder, tabOrderError, overlayVisible, isDiffOverlayVisible,
+        runTabOrderScan, showOverlay, hideOverlay, showDiffOverlay, hideDiffOverlay,
+        highlightElement, tabOrderMetadata, setOrderData, setTabOrderMetadata
+    } = tabOrder;
     const { saveScan, scanHistory } = history;
     const [toastMessage, setToastMessage] = React.useState(null);
     const hasData = Boolean(orderData && orderData.length > 0);
@@ -22,16 +27,16 @@ const TabOrderSection = () => {
     // Clean up overlay when component unmounts
     useEffect(() => {
         return () => {
-            if (overlayVisible) {
-                hideOverlay();
-            }
+            if (overlayVisible) hideOverlay();
+            if (isDiffOverlayVisible) hideDiffOverlay();
         };
-    }, [overlayVisible, hideOverlay]);
+    }, [overlayVisible, isDiffOverlayVisible, hideOverlay, hideDiffOverlay]);
 
     const handleToggleOverlay = () => {
         if (overlayVisible) {
             hideOverlay();
         } else {
+            if (isDiffOverlayVisible) hideDiffOverlay();
             showOverlay();
         }
     };
@@ -51,28 +56,38 @@ const TabOrderSection = () => {
         }
     };
 
-    const handleLoadPrevious = async () => {
+    const handleComparePrevious = async () => {
+        if (isDiffOverlayVisible) {
+            hideDiffOverlay();
+            return;
+        }
+
         // Find most recent tab-order scan in history
-        const previousScan = [...scanHistory]
+        const previousScanSummary = [...scanHistory]
             .filter(s => s.type === 'tab-order')
             .sort((a, b) => b.timestamp - a.timestamp)[0];
 
-        if (!previousScan) {
+        if (!previousScanSummary) {
             setToastMessage('No previous Tab Order scans found.');
             return;
         }
 
+        if (!orderData) {
+            setToastMessage('Please run a current scan first to compare.');
+            return;
+        }
+
         try {
-            const fullScan = await history.loadScanData(previousScan.id);
-            if (fullScan) {
-                setOrderData(fullScan.data);
-                if (fullScan.metadata) setTabOrderMetadata(fullScan.metadata);
-                showOverlay(fullScan.data);
-                setToastMessage('Previous Tab Order overlay loaded.');
+            const oldScan = await history.loadScanData(previousScanSummary.id);
+            if (oldScan) {
+                const diff = DiffEngine.compareScans(oldScan, { type: 'tab-order', data: orderData });
+                if (overlayVisible) hideOverlay();
+                showDiffOverlay(diff);
+                setToastMessage('Diff Overlay loaded: Green (+), Red (-), Orange (Order Change)');
             }
         } catch (e) {
             console.error(e);
-            setToastMessage('Failed to load previous scan.');
+            setToastMessage('Failed to compare with previous scan.');
         }
     };
 
@@ -105,16 +120,16 @@ const TabOrderSection = () => {
                             Scan Page
                         </button>
                         <button
-                            className={styles.overlayBtn}
+                            className={`${styles.overlayBtn} ${isDiffOverlayVisible ? styles.overlayBtnActive : ''}`}
                             type="button"
-                            onClick={handleLoadPrevious}
-                            style={{
+                            onClick={handleComparePrevious}
+                            style={isDiffOverlayVisible ? {} : {
                                 backgroundColor: '#fff',
                                 border: '1px solid #ccc',
                                 color: '#333'
                             }}
                         >
-                            📂 Load Previous
+                            {isDiffOverlayVisible ? '📊 Hide Compare' : '📊 Compare with Previous'}
                         </button>
                     </div>
                 </div>
@@ -157,16 +172,16 @@ const TabOrderSection = () => {
                                 {overlayVisible ? '👁️ Hide Overlay' : '👁️ Show Overlay'}
                             </button>
                             <button
-                                className={styles.overlayBtn}
+                                className={`${styles.overlayBtn} ${isDiffOverlayVisible ? styles.overlayBtnActive : ''}`}
                                 type="button"
-                                onClick={handleLoadPrevious}
-                                style={{
+                                onClick={handleComparePrevious}
+                                style={isDiffOverlayVisible ? {} : {
                                     backgroundColor: '#fff',
                                     border: '1px solid #ccc',
                                     color: '#333'
                                 }}
                             >
-                                📂 Load Previous
+                                {isDiffOverlayVisible ? '📊 Hide Compare' : '📊 Compare with Previous'}
                             </button>
                         </div>
                     </div>

@@ -8,6 +8,7 @@ export const useTabOrder = () => {
     const [isScanningTabOrder, setIsScanningTabOrder] = useState(false);
     const [tabOrderError, setTabOrderError] = useState(null);
     const [overlayVisible, setOverlayVisible] = useState(false);
+    const [isDiffOverlayVisible, setIsDiffOverlayVisible] = useState(false);
 
     const runTabOrderScan = useCallback(() => {
         setIsScanningTabOrder(true);
@@ -42,6 +43,15 @@ export const useTabOrder = () => {
         sendMessageToInspectedTab({ type: 'hide-tab-order-overlay' }, (response) => {
             if (response && response.ok) {
                 setOverlayVisible(false);
+                setIsDiffOverlayVisible(false);
+            }
+        });
+    }, []);
+
+    const hideDiffOverlay = useCallback(() => {
+        sendMessageToInspectedTab({ type: 'hide-tab-order-overlay' }, (response) => {
+            if (response && response.ok) {
+                setIsDiffOverlayVisible(false);
             }
         });
     }, []);
@@ -49,6 +59,15 @@ export const useTabOrder = () => {
     const highlightElement = useCallback((orderNumber, path = null) => {
         sendMessageToInspectedTab({ type: 'highlight-tab-order-element', orderNumber, path }, (response) => {
             // Optional: handle response if needed
+        });
+    }, []);
+
+    const showDiffOverlay = useCallback((diff) => {
+        sendMessageToInspectedTab({ type: 'show-diff-overlay', diff }, (response) => {
+            if (response && response.ok) {
+                setIsDiffOverlayVisible(true);
+                setOverlayVisible(false); // Mutually exclusive with regular overlay
+            }
         });
     }, []);
 
@@ -60,9 +79,12 @@ export const useTabOrder = () => {
         runTabOrderScan,
         showOverlay,
         hideOverlay,
+        showDiffOverlay,
+        hideDiffOverlay,
         highlightElement,
         setOrderData,
         setTabOrderMetadata,
-        tabOrderMetadata
+        tabOrderMetadata,
+        isDiffOverlayVisible
     };
 };

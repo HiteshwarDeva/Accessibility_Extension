@@ -109,8 +109,9 @@
     color: #fff;
     border: none;
     border-radius: 8px;
-    padding: 8px 16px; /* Slightly smaller for Structure/Contrast panels if needed, but user asked for "similar size". TabOrder uses 10px 18px. Let's match it or be slightly compact. */
-    padding: 10px 18px; 
+    padding: 8px 16px;
+    /* Slightly smaller for Structure/Contrast panels if needed, but user asked for "similar size". TabOrder uses 10px 18px. Let's match it or be slightly compact. */
+    padding: 10px 18px;
     font-weight: 600;
     font-size: 0.9rem;
     cursor: pointer;
@@ -118,7 +119,8 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    line-height: 1; /* Fix vertical alignment */
+    line-height: 1;
+    /* Fix vertical alignment */
 }
 
 .overlayBtn:hover {
