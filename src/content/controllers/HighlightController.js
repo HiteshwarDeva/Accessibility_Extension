@@ -106,4 +106,16 @@ export class HighlightController {
             sendResponse({ ok: false, error: error.message });
         }
     }
+
+    static handleShowStructureDiffOverlay(message, sendResponse) {
+        console.log('[HighlightController] handleShowStructureDiffOverlay called with:', message);
+        try {
+            OverlayView.showStructureDiffOverlay(message.diff);
+            console.log('[HighlightController] Structure diff overlay shown successfully');
+            sendResponse({ ok: true });
+        } catch (error) {
+            console.error('[HighlightController] Error showing structure diff overlay:', error);
+            sendResponse({ ok: false, error: error.message });
+        }
+    }
 }

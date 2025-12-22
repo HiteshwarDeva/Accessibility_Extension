@@ -67,4 +67,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         HighlightController.handleShowDiffOverlay(message, sendResponse);
         return;
     }
+    if (message.type === 'show-structure-diff-overlay') {
+        HighlightController.handleShowStructureDiffOverlay(message, sendResponse);
+        return;
+    }
 });

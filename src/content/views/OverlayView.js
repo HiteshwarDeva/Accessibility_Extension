@@ -402,6 +402,90 @@ export class OverlayView {
         if (existing) existing.remove();
     }
 
+    // --- Structure Diff Overlay ---
+
+    static showStructureDiffOverlay(diff) {
+        console.log('[OverlayView] showStructureDiffOverlay called with:', diff);
+        this.clearOverlays();
+        this.hideTabOrder();
+        this.injectTabOrderStyles();
+        this.removeFloatingDiffPanel();
+
+        if (!diff) {
+            console.warn('[OverlayView] No diff data provided');
+            return;
+        }
+
+        console.log('[OverlayView] Processing added:', diff.added?.length || 0);
+        console.log('[OverlayView] Processing removed:', diff.removed?.length || 0);
+
+        // 1. Handle Added structural elements
+        if (diff.added) {
+            diff.added.forEach(item => {
+                const el = DomModel.resolvePath(item.path);
+                if (el) {
+                    const badge = this.createStructureDiffBadge(el, '+', item);
+                    badge.classList.add('__diff_added');
+                    badge.title = `Added: ${item.name || item.tag}`;
+                } else {
+                    console.warn('[OverlayView] Could not resolve path for added item:', item.path);
+                }
+            });
+        }
+
+        // 2. Handle Removed structural elements (Ghost)
+        if (diff.removed) {
+            diff.removed.forEach(item => {
+                const rect = item.rect || (item.x !== undefined ? { left: item.x, top: item.y, width: item.width, height: item.height } : null);
+                if (rect) {
+                    const badge = this.createStructureGhostBadge(rect, '-', item);
+                    badge.classList.add('__diff_ghost');
+                    badge.title = `Removed: ${item.name || item.tag}`;
+                } else {
+                    console.warn('[OverlayView] No rect data for removed item:', item);
+                }
+            });
+        }
+
+        console.log('[OverlayView] Showing floating diff panel');
+        this.showFloatingDiffPanel(diff);
+    }
+
+    static createStructureDiffBadge(element, text, itemData) {
+        const rect = element.getBoundingClientRect();
+        const badge = document.createElement('div');
+        badge.className = TAB_ORDER_OVERLAY_CLASS;
+        badge.textContent = text;
+        badge.style.left = `${rect.left + window.scrollX}px`;
+        badge.style.top = `${rect.top + window.scrollY}px`;
+
+        // Add structure-specific styling
+        badge.style.minWidth = '28px';
+        badge.style.height = '28px';
+        badge.style.fontSize = '14px';
+
+        document.body.appendChild(badge);
+        element.__structureDiffBadge = badge;
+        return badge;
+    }
+
+    static createStructureGhostBadge(rect, text, itemData) {
+        const badge = document.createElement('div');
+        badge.className = TAB_ORDER_OVERLAY_CLASS;
+        badge.textContent = text;
+        badge.style.left = `${(rect.left || rect.x) + window.scrollX}px`;
+        badge.style.top = `${(rect.top || rect.y) + window.scrollY}px`;
+        badge.style.zIndex = '2147483646'; // Slightly behind active badges
+
+        // Add structure-specific styling
+        badge.style.minWidth = '28px';
+        badge.style.height = '28px';
+        badge.style.fontSize = '14px';
+
+        document.body.appendChild(badge);
+        return badge;
+    }
+
     // --- General Overlay (Structure / Highlights) ---
 
     static ensureOverlayContainer() {

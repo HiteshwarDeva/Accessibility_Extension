@@ -44,8 +44,8 @@ export const useStructure = () => {
         sendMessageToInspectedTab({ type: 'scroll-to-element', path }, () => { });
     }, []);
 
-    const showDiffOverlay = useCallback((diff) => {
-        sendMessageToInspectedTab({ type: 'show-diff-overlay', diff }, (response) => {
+    const showStructureDiffOverlay = useCallback((diff) => {
+        sendMessageToInspectedTab({ type: 'show-structure-diff-overlay', diff }, (response) => {
             if (response && response.ok) {
                 setIsDiffOverlayVisible(true);
             }
@@ -67,7 +67,7 @@ export const useStructure = () => {
         runStructureScan,
         showStructureBadges,
         scrollToElement,
-        showDiffOverlay,
+        showStructureDiffOverlay,
         hideDiffOverlay,
         setStructure,
         setStructureMetadata,

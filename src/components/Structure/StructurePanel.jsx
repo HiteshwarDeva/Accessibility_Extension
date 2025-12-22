@@ -16,7 +16,8 @@ const StructurePanel = () => {
         hideDiffOverlay,
         scrollToElement,
         structureMetadata,
-        setStructureMetadata
+        setStructureMetadata,
+        showStructureDiffOverlay
     } = structureContext;
     const { clearHighlights } = axe;
     const { saveScan, scanHistory, loadScanData } = history;
@@ -97,18 +98,32 @@ const StructurePanel = () => {
 
         try {
             const oldScan = await loadScanData(previousScanSummary.id);
-            if (oldScan) {
-                const diff = DiffEngine.compareScans(oldScan, { type: 'structure', data: structure });
-                if (isOverlayVisible) {
-                    clearHighlights();
-                    setIsOverlayVisible(false);
-                }
-                structureContext.showDiffOverlay(diff); // Use the new context method
-                setToastMessage('Diff Overlay loaded: Green (+), Red (-)');
+            console.log('[Structure Diff] Old scan loaded:', oldScan);
+            console.log('[Structure Diff] Current structure:', structure);
+
+            if (!oldScan) {
+                setToastMessage('Failed to load previous scan data.');
+                return;
             }
+
+            const diff = DiffEngine.compareScans(oldScan, { type: 'structure', data: structure });
+            console.log('[Structure Diff] Diff result:', diff);
+
+            if (diff.error) {
+                setToastMessage(`Diff error: ${diff.error}`);
+                return;
+            }
+
+            if (isOverlayVisible) {
+                clearHighlights();
+                setIsOverlayVisible(false);
+            }
+
+            showStructureDiffOverlay(diff);
+            setToastMessage('Diff Overlay loaded: Green (+), Red (-)');
         } catch (e) {
-            console.error(e);
-            setToastMessage('Failed to compare with previous scan.');
+            console.error('[Structure Diff] Error:', e);
+            setToastMessage(`Failed to compare: ${e.message || 'Unknown error'}`);
         }
     };
 

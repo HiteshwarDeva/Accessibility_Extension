@@ -85,7 +85,7 @@ export const AccessibilityProvider = ({ children }) => {
             isDiffOverlayVisible: structureData.isDiffOverlayVisible,
             runStructureScan: structureData.runStructureScan,
             showStructureBadges: structureData.showStructureBadges,
-            showDiffOverlay: structureData.showDiffOverlay,
+            showStructureDiffOverlay: structureData.showStructureDiffOverlay,
             hideDiffOverlay: structureData.hideDiffOverlay,
             scrollToElement: structureData.scrollToElement,
             setStructure: structureData.setStructure,
