@@ -76,10 +76,23 @@ const ContrastChecker = ({ initialColors, embedded = false }) => {
     }, [fgColor, bgColor]);
 
     const getRecommendation = () => {
-        if (compliance.aaaNormal) return "Excellent! This color combination meets AAA standards for both normal and large text.";
-        if (compliance.aaNormal) return "Good. This color combination meets AA standards for normal text and AAA standards for large text.";
-        if (compliance.aaLarge) return "Fair. This color combination meets AA standards for large text only.";
-        return "Poor. This color combination fails WCAG contrast standards.";
+        if (textSize === 'large') {
+            if (compliance.aaaLarge) {
+                return 'This color combination meets WCAG 2.1 Level AA and Level AAA contrast requirements for large text and is suitable for use in accessibility-compliant interfaces.';
+            }
+            if (compliance.aaLarge) {
+                return 'This color combination meets WCAG 2.1 Level AA contrast requirements for large text but does not meet Level AAA. Consider increasing contrast if AAA compliance is required.';
+            }
+            return 'This color combination does not meet WCAG 2.1 contrast requirements for large text. It is recommended to adjust the foreground or background colors to improve accessibility.';
+        } else {
+            if (compliance.aaaNormal) {
+                return 'This color combination meets WCAG 2.1 Level AA and Level AAA contrast requirements for normal text and is appropriate for use in accessibility-compliant designs.';
+            }
+            if (compliance.aaNormal) {
+                return 'This color combination meets WCAG 2.1 Level AA contrast requirements for normal text but does not meet Level AAA. Enhancing contrast is recommended for higher accessibility standards.';
+            }
+            return 'This color combination does not meet WCAG 2.1 contrast requirements for normal text. Adjusting the color contrast is strongly recommended to ensure accessibility compliance.';
+        }
     };
 
     return (
