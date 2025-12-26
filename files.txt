@@ -1,0 +1,8 @@
+C:\Users\91905\OneDrive\Desktop\github\Accessibility_Extension\dist\background.js
+C:\Users\91905\OneDrive\Desktop\github\Accessibility_Extension\dist\content.js
+C:\Users\91905\OneDrive\Desktop\github\Accessibility_Extension\dist\devtools.js
+C:\Users\91905\OneDrive\Desktop\github\Accessibility_Extension\dist\assets\DomModel-BUiMYZ9A.js
+C:\Users\91905\OneDrive\Desktop\github\Accessibility_Extension\dist\assets\HighlightController-DGjCt7vk.js
+C:\Users\91905\OneDrive\Desktop\github\Accessibility_Extension\dist\assets\panel-D6eSSgs3.js
+C:\Users\91905\OneDrive\Desktop\github\Accessibility_Extension\dist\assets\ScanController-uW7XiqWz.js
+C:\Users\91905\OneDrive\Desktop\github\Accessibility_Extension\dist\vendor\axe.min.js

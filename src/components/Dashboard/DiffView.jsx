@@ -77,16 +77,19 @@ const DiffView = ({ oldScan, newScan, onClose }) => {
                             <p className={styles.emptyCopy}>Nothing removed.</p>
                         ) : (
                             <div className={styles.verticalIssueList}>
-                                {diff.removed.map((item, idx) => (
-                                    <div key={idx} className={styles.issueListItem}>
-                                        <div className={styles.issueName}>
-                                            {item.name || item.tag || 'Element'}
-                                            <span style={{ fontSize: '0.8em', color: '#999', marginLeft: '8px' }}>
-                                                ({item.role || item.type})
-                                            </span>
+                                {diff.removed.map((item, idx) => {
+                                    if (!item) return null;
+                                    return (
+                                        <div key={idx} className={styles.issueListItem}>
+                                            <div className={styles.issueName}>
+                                                {item.name || item.tag || 'Element'}
+                                                <span style={{ fontSize: '0.8em', color: '#999', marginLeft: '8px' }}>
+                                                    ({item.role || item.type || 'unknown'})
+                                                </span>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
@@ -98,16 +101,19 @@ const DiffView = ({ oldScan, newScan, onClose }) => {
                             <p className={styles.emptyCopy}>Nothing added.</p>
                         ) : (
                             <div className={styles.verticalIssueList}>
-                                {diff.added.map((item, idx) => (
-                                    <div key={idx} className={styles.issueListItem}>
-                                        <div className={styles.issueName}>
-                                            {item.name || item.tag || 'Element'}
-                                            <span style={{ fontSize: '0.8em', color: '#999', marginLeft: '8px' }}>
-                                                ({item.role || item.type})
-                                            </span>
+                                {diff.added.map((item, idx) => {
+                                    if (!item) return null;
+                                    return (
+                                        <div key={idx} className={styles.issueListItem}>
+                                            <div className={styles.issueName}>
+                                                {item.name || item.tag || 'Element'}
+                                                <span style={{ fontSize: '0.8em', color: '#999', marginLeft: '8px' }}>
+                                                    ({item.role || item.type || 'unknown'})
+                                                </span>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>

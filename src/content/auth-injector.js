@@ -7,6 +7,10 @@
 
 let lastToken = null;
 
+// Check if this login was initiated by the extension
+const urlParams = new URLSearchParams(window.location.search);
+const isExtensionFlow = urlParams.get('extension') === 'true';
+
 function syncToken() {
     try {
         const token = localStorage.getItem('token');
@@ -16,13 +20,19 @@ function syncToken() {
 
             if (token) {
                 console.log('[ArmourAI Injector] Token found, syncing to extension storage.');
-                chrome.storage.local.set({ extension_auth_token: token }, () => {
-                    console.log('[ArmourAI Injector] Token saved to chrome.storage.local');
+                chrome.storage.sync.set({ extension_auth_token: token }, () => {
+                    console.log('[ArmourAI Injector] Token saved to chrome.storage.sync');
+
+                    // If this was an extension-tagged login, we can close the tab
+                    if (isExtensionFlow) {
+                        console.log('[ArmourAI Injector] Closing extension login tab...');
+                        setTimeout(() => window.close(), 1000);
+                    }
                 });
             } else {
-                console.log('[ArmourAI Injector] Token not found (user might be logged out). Clearing from storage.');
-                chrome.storage.local.remove('extension_auth_token', () => {
-                    console.log('[ArmourAI Injector] Token removed from chrome.storage.local');
+                console.log('[ArmourAI Injector] Token not found or cleared. Removing from sync storage.');
+                chrome.storage.sync.remove('extension_auth_token', () => {
+                    console.log('[ArmourAI Injector] Token removed from chrome.storage.sync');
                 });
             }
         }

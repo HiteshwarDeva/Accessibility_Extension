@@ -10,8 +10,14 @@
   ],
   "devtools_page": "devtools.html",
   "host_permissions": [
-    "<all_urls>"
+    "<all_urls>",
+    "http://localhost:8080/*",
+    "http://localhost:3000/*"
   ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
   "content_scripts": [
     {
       "matches": [
@@ -22,15 +28,16 @@
         "content.js"
       ],
       "run_at": "document_idle"
-    },
+    }
+  ],
+  "web_accessible_resources": [
     {
+      "resources": [
+        "auth-success.html"
+      ],
       "matches": [
-        "https://armourwebcomply.duckdns.org/*"
-      ],
-      "js": [
-        "auth-injector.js"
-      ],
-      "run_at": "document_idle"
+        "<all_urls>"
+      ]
     }
   ]
 }

@@ -182,7 +182,7 @@ const StructurePanel = () => {
                 </div>
             </div>
             <div className={styles.list}>
-                {structure.map((item, index) => (
+                {structure.filter(Boolean).map((item, index) => (
                     <StructureItem key={index} item={item} scrollToElement={scrollToElement} />
                 ))}
             </div>

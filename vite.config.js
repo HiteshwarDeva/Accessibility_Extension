@@ -10,17 +10,13 @@ export default defineConfig({
     rollupOptions: {
       input: {
         panel: resolve(__dirname, 'index.html'),
-        content: resolve(__dirname, 'src/content/index.js'),
-        auth: resolve(__dirname, 'src/content/auth-injector.js'),
+        content: resolve(__dirname, 'src/content.js'),
+        background: resolve(__dirname, 'src/background.js'),
       },
       output: {
         entryFileNames: (chunk) => {
-          if (chunk.name === 'content') {
-            return 'content.js';
-          }
-          if (chunk.name === 'auth') {
-            return 'auth-injector.js';
-          }
+          if (chunk.name === 'content') return 'content.js';
+          if (chunk.name === 'background') return 'background.js';
           return 'assets/[name]-[hash].js';
         },
       },
